@@ -150,7 +150,7 @@ async function cancelCreateFirmaFromForm() {
 
 async function loadKierowcyDoSelecta() {
   const select = document.getElementById("PojazdPrzypisanyKierowca");
-  select.innerHTML = `<option value="" disabled selected hidden>Brak przypisania</option>`;
+  select.innerHTML = `<option value="">Brak przypisania</option>`;
 
   const {
     data: { user },
