@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FleetManager</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js" defer></script>
+    <script src="dashboard.js" defer></script>
+    <script
+      src="https://kit.fontawesome.com/1017934682.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+
+  <body>
+    <div id="alert"></div>
+    <div id="menuBar">
+      <div class="icon-box">
+        <i class="fa-solid fa-truck"></i>
+        <div class="name-box">
+          <h2>FleetManager</h2>
+          <p>Zarządzanie flotą</p>
+        </div>
+      </div>
+      <ul class="viewsMenu">
+        <li
+          class="viewButton always-visible active"
+          data-view="viewDashboard"
+          data-title="Pulpit"
+        >
+          <i class="fa-solid fa-bars-staggered"></i>
+          <p>Pulpit</p>
+        </li>
+        <li class="viewButton" data-view="viewPojazdy" data-title="Pojazdy">
+          <i class="fa-solid fa-truck"></i>
+          <p>Pojazdy</p>
+        </li>
+        <li class="viewButton" data-view="viewKierowcy" data-title="Kierowcy">
+          <i class="fa-solid fa-users"></i>
+          <p>Kierowcy</p>
+        </li>
+        <li class="viewButton" data-view="viewDokumenty" data-title="Dokumenty">
+          <i class="fa-solid fa-file-circle-check"></i>
+          <p>Dokumenty</p>
+        </li>
+        <li
+          class="viewButton"
+          data-view="viewUżytkownicy"
+          data-title="Uzytkownicy"
+        >
+          <i class="fa-solid fa-users-gear"></i>
+          <p>Użytkownicy</p>
+        </li>
+        <li
+          class="viewButton"
+          data-view="viewUstawieniaFirmy"
+          data-title="Ustawienia firmy"
+        >
+          <i class="fa-solid fa-city"></i>
+          <p>Ustawienia firmy</p>
+        </li>
+        <li
+          class="viewButton always-visible"
+          data-view="viewUstawieniaProfilu"
+          data-title="Ustawienia profilu"
+        >
+          <i class="fa-solid fa-user"></i>
+          <p>Ustawienia profilu</p>
+        </li>
+      </ul>
+      <div class="logoutButton">
+        <div id="logoutBtn" class="viewButton">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <p>Wyloguj</p>
+        </div>
+      </div>
+    </div>
+    <div class="view">
+      <div class="topBar">
+        <h2 id="viewTitle">Pulpit</h2>
+        <div class="userInfo">
+          <i class="fa-solid fa-user"></i>
+          <p id="userInfo-userMail"></p>
+        </div>
+      </div>
+      <div id="viewCreateFirma" class="inView">
+        <div class="main">
+          <div class="create-company-container">
+            <div class="create-company-box">
+              <h2>Dodaj firmę</h2>
+              <p>
+                Aby korzystać z wszystkich funkcji FleetManager, dodaj swoją
+                firmę.
+              </p>
+
+              <div
+                class="add-company-btn"
+                id="addCompanyBtn"
+                data-view="viewCreateFirmaForm"
+                data-title="Dodaj firmę"
+              >
+                <i class="fa-solid fa-plus"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="viewCreateFirmaForm" class="inView">
+        <div class="main">
+          <h2>Dodaj swoją firmę</h2>
+          <div class="createFirmaForm createForm">
+            <h3>Dane firmy</h3>
+            <p>Nazwa firmy</p>
+            <input type="text" id="firmaNazwa" placeholder="nazwa firmy" />
+            <p>Email firmy</p>
+            <input type="email" id="firmaAdres" placeholder="firma@email.pl" />
+            <div class="createFormButtons">
+              <button class="acceptButton" onclick="createFirmaFromForm()">
+                Akceptuj
+              </button>
+              <button
+                class="cancelButton"
+                onclick="cancelCreateFirmaFromForm()"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="viewDashboard" class="inView">
+        <div class="main">
+          <h3>Podsumowanie statusu dokumentów</h3>
+          <div class="dokumentyTiles">
+            <div class="wazneTile tile">
+              <div class="info">
+                <p>Dokumenty ważne</p>
+                <p class="number">1</p>
+              </div>
+              <div class="tileIcon">
+                <i class="fa-solid fa-file-circle-check"></i>
+              </div>
+            </div>
+            <div class="wygasajaTile tile">
+              <div class="info">
+                <p>Wygasają wkrótce</p>
+                <p class="number">2</p>
+              </div>
+              <div class="tileIcon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+            </div>
+            <div class="niewazneTile tile">
+              <div class="info">
+                <p>Nieważne</p>
+                <p class="number">3</p>
+              </div>
+              <div class="tileIcon">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </div>
+            </div>
+          </div>
+          <div class="nadchodzaceTerminy">
+            <h3>Nadchodzące terminy (14-30 dni)</h3>
+            <div class="tiles">
+              <div class="tile">
+                <div class="info">
+                  <p class="infoBold">Przegląd techniczny</p>
+                  <p>Pojazd: WA 67043</p>
+                </div>
+                <div class="terminWygasniecia">
+                  <p>Wygasa: 2026-03-20</p>
+                </div>
+              </div>
+              <div class="tile">
+                <div class="info">
+                  <p class="infoBold">Przegląd techniczny</p>
+                  <p>Pojazd: WA 67043</p>
+                </div>
+                <div class="terminWygasniecia">
+                  <p>Wygasa: 2026-03-20</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3>Szybkie akcje</h3>
+          <div class="szybkieAkcje">
+            <div
+              class="tile"
+              data-view="viewDodajPojazd"
+              data-title="Dodaj pojazd"
+            >
+              <div class="tileIcon">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+              <h3>Dodaj pojazd</h3>
+              <p>Zarejestruj nowy pojazd we flocie</p>
+            </div>
+            <div
+              class="tile"
+              data-view="viewDodajKierowcę"
+              data-title="Dodaj kierowcę"
+            >
+              <div class="tileIcon">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+              <h3>Dodaj kierowcę</h3>
+              <p>Dodaj nowego kierowcę do zespołu</p>
+            </div>
+            <div
+              class="tile"
+              data-view="viewDodajDokument"
+              data-title="Dodaj dokument"
+            >
+              <div class="tileIcon">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+              <h3>Dodaj dokument</h3>
+              <p>Dodaj dokument do systemu</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewPojazdy" class="inView">
+        <div class="main">
+          <div class="pojazdy">
+            <div class="titleButton">
+              <h3>Lista pojazdów</h3>
+              <button data-view="viewDodajPojazd" data-title="Dodaj pojazd">
+                Dodaj pojazd
+              </button>
+            </div>
+            <div class="table table-header">
+              <div>TYP POJAZDU</div>
+              <div>NUMER REJESTRACYJNY</div>
+              <div>MARKA I MODEL</div>
+              <div>PRZYPISANY KIEROWCA</div>
+              <div>STATUS DOKUMENTÓW</div>
+              <div>AKCJE</div>
+            </div>
+
+            <div id="pojazdyRows"></div>
+          </div>
+        </div>
+      </div>
+      <div id="viewDodajPojazd" class="inView dodajNowy">
+        <div class="main">
+          <div class="header">
+            <button data-view="viewPojazdy" data-title="Pojazdy">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <p>Dodaj nowy pojazd</p>
+          </div>
+          <div class="createPojazdForm createForm">
+            <h3>Dane pojazdu</h3>
+            <p>Typ pojazdu</p>
+            <select id="selectTypPojazdu">
+              <option value="Ciężarówka">Ciężarówka</option>
+              <option value="Naczepa">Naczepa</option>
+            </select>
+            <p>Numer rejestracyjny</p>
+            <input
+              type="text"
+              id="pojazdNumerRejestracyjny"
+              placeholder="WA 12345"
+            />
+            <div class="createFormGrid">
+              <div class="halfScreenInput">
+                <p>Marka</p>
+                <input type="text" id="pojazdMarka" placeholder="Scania" />
+              </div>
+              <div class="halfScreenInput">
+                <p>Model</p>
+                <input type="text" id="pojazdModel" placeholder="R450" />
+              </div>
+              <div class="halfScreenInput">
+                <p>Rok produkcji</p>
+                <input
+                  type="number"
+                  id="pojazdRokProdukcji"
+                  placeholder="2000"
+                />
+              </div>
+              <div class="halfScreenInput">
+                <p>Numer VIN</p>
+                <input
+                  type="text"
+                  id="pojazdNumerVIN"
+                  placeholder="YS2R4X20001234567"
+                />
+              </div>
+            </div>
+            <p>Przypisany kierowca (opcjonalnie)</p>
+            <select
+              aria-placeholder="Brak przypisania"
+              id="PojazdPrzypisanyKierowca"
+            ></select>
+            <div class="createFormButtons">
+              <button class="acceptButton" onclick="dodajPojazdFromForm()">
+                Dodaj pojazd
+              </button>
+              <button
+                class="cancelButton"
+                onclick="cancelCreatePojazdFromForm()"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewKierowcy" class="inView">
+        <div class="main"><h2>Kierowcy (placeholder)</h2></div>
+      </div>
+
+      <div id="viewDokumenty" class="inView">
+        <div class="main"><h2>Dokumenty (placeholder)</h2></div>
+      </div>
+
+      <div id="viewUżytkownicy" class="inView">
+        <div class="main"><h2>Użytkownicy (placeholder)</h2></div>
+      </div>
+
+      <div id="viewUstawieniaFirmy" class="inView">
+        <div class="main"><h2>Ustawienia firmy (placeholder)</h2></div>
+      </div>
+
+      <div id="viewUstawieniaProfilu" class="inView">
+        <div class="main"><h2>Ustawienia profilu (placeholder)</h2></div>
+      </div>
+    </div>
+    <!-- <div class="view viewDashboard">
+      <div class="topBar">
+        <h2>Pulpit</h2>
+        <div class="userInfo">
+          <i class="fa-regular fa-user"></i>
+          <p id="userInfo-userMail"></p>
+        </div>
+      </div>
+      <div class="main">
+        <h3>Podsumowanie statusu dokumentów</h3>
+        <div class="wazneDokumentyTopTiles">
+          <div class="tile">
+            <div class="tileText">
+              <p>Dokumenty ważne</p>
+              <h2>3</h2>
+            </div>
+            <div class="tileIconBox">
+              <i class="fa-solid fa-file-circle-check"></i>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="tileText">
+              <p>Wygasają wkrótce</p>
+              <h2>2</h2>
+            </div>
+            <div class="tileIconBox">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="tileText">
+              <p>Nieważne</p>
+              <h2>1</h2>
+            </div>
+            <div class="tileIconBox">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+          </div>
+        </div>
+        <div class="nadchodzaceTerminy">
+          <div class="title">
+            <i class="fa-regular fa-calendar"></i>
+            <h2>Nadchodzące terminy (14-30 dni)</h2>
+          </div>
+          <div class="dokumenty">
+            <div class="informacje">
+              <h3>Przegląd techniczny</h3>
+            </div>
+            <div class="terminWaznosci"></div>
+          </div>
+        </div>
+      </div>
+    </div> -->
+  </body>
+</html>

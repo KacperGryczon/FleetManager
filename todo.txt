@@ -1,0 +1,10 @@
+***GOTOWE*** trzeba zrobić jakiś prosty login/register w html css i podpiąć tego js żeby już można się było logować 
+jakiś dashboard widok który będzie widział użytkownik po zalogowaniu
+homepage jeszcze przed zalogowaniem się, w którymś ai już mam rozpisane jak to zrobić, ale wiadomo
+hero, jakieś do czego służy aplikacja, do jakich problemów jesteśmy rozwiązaniem, potem jakiś jak to działa
+3 tile proste dodaj firme, dodaj pojazdy, kierowców, i daty dokumnetów coś takiego
+***GOTOWE*** JAKIŚ DESIGN TRZEBA ZNALEŹĆ NAJPIERW I KOLORKI ŻEBY WSZYSTKO JUŻ ROBIĆ W JAKIMŚ STYLU KONKRETNYM
+
+PRZECZYTAJ -----> !!!!!!!!!!!!!!!!!!!!!!!
+
+jutro trzeba zrobić tak żeby ładnie wyglądał proces dodawania tej firmy, jakieś kolory czerwone jeżeli coś nie bangla, i może po dodaniu jakiś komunikat zielony dobrze by było pierdzielnąć że firma została dodana
