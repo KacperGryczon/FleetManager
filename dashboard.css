@@ -501,11 +501,16 @@ select {
   padding: 16px;
   padding-block: 24px;
   border-top-left-radius: 8px;
-  border-top-right-radius: 8px ;
+  border-top-right-radius: 8px;
 }
 
 .pojazdy .table-row:hover {
   background-color: rgba(246, 246, 246, 0.348);
+}
+
+.table-row div:nth-child(3) {
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .table button {
@@ -529,9 +534,11 @@ select {
 }
 
 .table-row {
-  padding: px 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(150px, 1fr));
+  gap: 24px;
+  padding: 16px 0;
   border-bottom: 1px solid #eee;
-  display: contents;
 }
 
 .dodajNowy {

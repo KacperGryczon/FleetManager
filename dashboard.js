@@ -59,6 +59,11 @@ function showView(viewId, title) {
   if (viewId === "viewPojazdy") {
     loadPojazdyList();
   }
+  if (viewId === "viewKierowcy") {
+    loadKierowcyList();
+  }
+
+  setActiveMenu(viewId);
 }
 
 document.querySelectorAll("[data-view]").forEach((btn) => {
@@ -335,4 +340,157 @@ async function loadPojazdyList() {
 
     container.appendChild(row);
   });
+}
+
+async function dodajKierowcęFromForm() {
+  const fields = [
+    "kierowcaImię",
+    "kierowcaNazwisko",
+    "kierowcaTelefon",
+    "kierowcaMail",
+  ];
+
+  let hasError = false;
+
+  fields.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) {
+      el.classList.add("placeholder-red");
+      hasError = true;
+
+      el.addEventListener(
+        "input",
+        () => {
+          el.classList.remove("placeholder-red");
+        },
+        { once: true },
+      );
+    }
+  });
+
+  if (hasError) return;
+
+  const imię = document.getElementById("kierowcaImię").value.trim();
+  const nazwisko = document.getElementById("kierowcaNazwisko").value.trim();
+  const telefon = document.getElementById("kierowcaTelefon").value.trim();
+  const email = document.getElementById("kierowcaMail").value.trim();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await client.auth.getUser();
+
+  if (userError || !user) {
+    alert("Brak zalogowanego użytkownika.");
+    return;
+  }
+
+  const { data: firma, error: firmaError } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (firmaError || !firma) {
+    alert("Nie znaleziono firmy użytkownika.");
+    return;
+  }
+
+  const { data, error } = await client
+    .from("KIEROWCA")
+    .insert({
+      firma_id: firma.id,
+      imie_nazwisko: imię + " " + nazwisko,
+      telefon,
+      email,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Nie udało się dodać kierowcy.");
+    return;
+  }
+
+  alert("Pojazd został dodany.");
+  showView("viewKierowcy", "Kierowcy");
+}
+
+async function loadKierowcyList() {
+  const container = document.getElementById("kierowcyRows");
+  container.innerHTML = "";
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const { data: kierowcy, error } = await client
+    .from("KIEROWCA")
+    .select("id, imie_nazwisko, telefon, email")
+    .eq("firma_id", firma.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  if (!kierowcy || kierowcy.length === 0) {
+    container.innerHTML = `
+      <div class="brakPojazdow">
+        <p>Nie masz jeszcze żadnych kierowców.</p>
+        <button data-view="viewDodajKierowce" data-title="Dodaj kierowcę">Dodaj kierowcę</button>
+      </div>
+    `;
+    return;
+  }
+
+  kierowcy.forEach((k) => {
+    const row = document.createElement("div");
+    row.classList.add("table", "table-row");
+
+    row.innerHTML = `
+      <div>${k.imie_nazwisko}</div>
+      <div>${k.telefon || "-"}</div>
+      <div>${k.email || "-"}</div>
+      <div class="status green">Ważny</div>
+      <div>
+        <button data-view="viewSzczegolyKierowcy" data-id="${k.id}" data-title="Szczegóły kierowcy">
+          <i class="fa-regular fa-eye"></i>Szczegóły
+        </button>
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+function setActiveMenu(viewId) {
+  document.querySelectorAll(".viewButton").forEach((btn) => {
+    btn.classList.remove("active");
+  });
+
+  const map = {
+    viewDashboard: "viewDashboard",
+    viewPojazdy: "viewPojazdy",
+    viewDodajPojazd: "viewPojazdy",
+    viewKierowcy: "viewKierowcy",
+    viewDokumenty: "viewDokumenty",
+    viewUżytkownicy: "viewUżytkownicy",
+    viewUstawieniaFirmy: "viewUstawieniaFirmy",
+    viewUstawieniaProfilu: "viewUstawieniaProfilu",
+    viewDodajKierowcę: "viewKierowcy",
+  };
+
+  const target = map[viewId];
+  if (!target) return;
+
+  const btn = document.querySelector(`.viewButton[data-view="${target}"]`);
+  if (btn) btn.classList.add("active");
 }

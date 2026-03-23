@@ -313,7 +313,72 @@
       </div>
 
       <div id="viewKierowcy" class="inView">
-        <div class="main"><h2>Kierowcy (placeholder)</h2></div>
+        <div class="main">
+          <div class="pojazdy">
+            <div class="titleButton">
+              <h3>Lista kierowców</h3>
+              <button data-view="viewDodajKierowcę" data-title="Dodaj kierowcę">
+                Dodaj kierowcę
+              </button>
+            </div>
+            <div class="table table-header">
+              <div>IMIĘ I NAZWISKO</div>
+              <div>TELEFON</div>
+              <div>E-MAIL</div>
+              <div>STATUS DOKUMENTÓW</div>
+              <div>AKCJE</div>
+            </div>
+
+            <div id="kierowcyRows"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewDodajKierowcę" class="inView dodajNowy">
+        <div class="main">
+          <div class="header">
+            <button data-view="viewKierowcy" data-title="Kierowcy">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <p>Dodaj nowego kierowcę</p>
+          </div>
+          <div class="createPojazdForm createForm">
+            <h3>Dane kierowcy</h3>
+            <div class="createFormGrid">
+              <div class="halfScreenInput">
+                <p>Imię</p>
+                <input type="text" id="kierowcaImię" placeholder="Jan" />
+              </div>
+              <div class="halfScreenInput">
+                <p>Nazwisko</p>
+                <input type="text" id="kierowcaNazwisko" placeholder="Nowak" />
+              </div>
+            </div>
+            <p>Telefon</p>
+            <input
+              type="text"
+              id="kierowcaTelefon"
+              placeholder="+48 123 456 789"
+            />
+            <p>E-mail</p>
+            <input
+              type="email"
+              id="kierowcaMail"
+              placeholder="jan.kowalski@fleetmanager.pl"
+            />
+            <div class="createFormButtons">
+              <button class="acceptButton" onclick="dodajKierowcęFromForm()">
+                Dodaj kierowcę
+              </button>
+              <button
+                class="cancelButton"
+                onclick="cancelCreateKierowcęFromForm()"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="viewDokumenty" class="inView">
