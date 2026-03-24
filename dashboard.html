@@ -382,7 +382,99 @@
       </div>
 
       <div id="viewDokumenty" class="inView">
-        <div class="main"><h2>Dokumenty (placeholder)</h2></div>
+        <div class="main">
+          <div class="filtry">
+            <h3>Filtry</h3>
+            <p>Status</p>
+            <div class="buttons">
+              <button class="active">Wszystkie</button>
+              <button>Ważne</button>
+              <button>Wygasające</button>
+              <button>Nieważne</button>
+            </div>
+            <p>Typ przypisania</p>
+            <div class="buttons">
+              <button class="active">Wszystkie</button>
+              <button>Pojazdy</button>
+              <button>Kierowcy</button>
+              <button>Firma</button>
+            </div>
+          </div>
+          <div class="pojazdy">
+            <div class="titleButton">
+              <h3>Lista dokumentów <span class="dokumentyCount">(1)</span></h3>
+              <button data-view="viewDodajDokument" data-title="Dodaj dokument">
+                Dodaj dokument
+              </button>
+            </div>
+            <div class="table table-header">
+              <div>NAZWA DOKUMENTU</div>
+              <div>PRZYPISANIE</div>
+              <div>DATA WAŻNOŚCI</div>
+              <div>STATUS</div>
+              <div>AKCJE</div>
+            </div>
+
+            <div id="dokumentyRows"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewDodajDokument" class="inView dodajNowy">
+        <div class="main">
+          <div class="header">
+            <button data-view="viewDokumenty" data-title="Dokumenty">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <p>Dodaj nowy dokument</p>
+          </div>
+          <div class="createDokumentForm createForm">
+            <h3>Dane dokumentu</h3>
+            <p>Nazwa dokumentu</p>
+            <input
+              type="text"
+              id="dokumentNazwa"
+              placeholder="Ubezpieczenie OC"
+            />
+            <p>Data ważności</p>
+            <input
+              type="date"
+              id="dokumentDataWaznosci"
+              placeholder="dd.mm.rrrr"
+            />
+            <p>Typ przypisania</p>
+            <select id="dokumentTypPrzypisania">
+              <option value="Pojazd">Pojazd</option>
+              <option value="Kierowca">Kierowca</option>
+              <option value="Firma">Firma</option>
+            </select>
+            <div class="file-upload" id="fileUpload">
+              <input
+                type="file"
+                id="fileInput"
+                accept=".pdf,.jpg,.png"
+                hidden
+              />
+              <div class="upload-box">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <p>Kliknij, aby wybrać plik lub przeciągnij go tutaj</p>
+                <span>PDF, JPG, PNG (maksymalnie 10MB)</span>
+              </div>
+            </div>
+
+            <div class="createFormButtons">
+              <button class="acceptButton" onclick="dodajKierowcęFromForm()">
+                Dodaj kierowcę
+              </button>
+              <button
+                class="cancelButton"
+                onclick="cancelCreateKierowcęFromForm()"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="viewUżytkownicy" class="inView">
@@ -397,58 +489,5 @@
         <div class="main"><h2>Ustawienia profilu (placeholder)</h2></div>
       </div>
     </div>
-    <!-- <div class="view viewDashboard">
-      <div class="topBar">
-        <h2>Pulpit</h2>
-        <div class="userInfo">
-          <i class="fa-regular fa-user"></i>
-          <p id="userInfo-userMail"></p>
-        </div>
-      </div>
-      <div class="main">
-        <h3>Podsumowanie statusu dokumentów</h3>
-        <div class="wazneDokumentyTopTiles">
-          <div class="tile">
-            <div class="tileText">
-              <p>Dokumenty ważne</p>
-              <h2>3</h2>
-            </div>
-            <div class="tileIconBox">
-              <i class="fa-solid fa-file-circle-check"></i>
-            </div>
-          </div>
-          <div class="tile">
-            <div class="tileText">
-              <p>Wygasają wkrótce</p>
-              <h2>2</h2>
-            </div>
-            <div class="tileIconBox">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-          </div>
-          <div class="tile">
-            <div class="tileText">
-              <p>Nieważne</p>
-              <h2>1</h2>
-            </div>
-            <div class="tileIconBox">
-              <i class="fa-solid fa-circle-xmark"></i>
-            </div>
-          </div>
-        </div>
-        <div class="nadchodzaceTerminy">
-          <div class="title">
-            <i class="fa-regular fa-calendar"></i>
-            <h2>Nadchodzące terminy (14-30 dni)</h2>
-          </div>
-          <div class="dokumenty">
-            <div class="informacje">
-              <h3>Przegląd techniczny</h3>
-            </div>
-            <div class="terminWaznosci"></div>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </body>
 </html>

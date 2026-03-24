@@ -494,3 +494,135 @@ function setActiveMenu(viewId) {
   const btn = document.querySelector(`.viewButton[data-view="${target}"]`);
   if (btn) btn.classList.add("active");
 }
+
+let dokumentyCache = [];
+
+async function loadDokumentyList() {
+  const container = document.getElementById("dokumentyRows");
+  container.innerHTML = "";
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const { data: dokumenty, error } = await client
+    .from("DOKUMENT")
+    .select("*")
+    .eq("firma_id", firma.id);
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  dokumentyCache = dokumenty;
+
+  renderDokumenty(dokumentyCache);
+}
+
+function renderDokumenty(lista) {
+  const container = document.getElementById("dokumentyRows");
+  container.innerHTML = "";
+
+  document.querySelector(".dokumentyCount").textContent = `(${lista.length})`;
+
+  if (lista.length === 0) {
+    container.innerHTML = `<p>Brak dokumentów spełniających kryteria filtrów.</p>`;
+    return;
+  }
+
+  lista.forEach((d) => {
+    const row = document.createElement("div");
+    row.classList.add("table", "table-row");
+
+    row.innerHTML = `
+      <div>${d.nazwa}</div>
+      <div>${d.przypisanie_typ}: ${d.przypisanie_nazwa}</div>
+      <div>${d.data_waznosci}</div>
+      <div class="status ${statusColor(d.status)}">${d.status}</div>
+      <div>
+        <button><i class="fa-regular fa-eye"></i>Szczegóły</button>
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+function statusColor(status) {
+  if (status === "Ważny") return "green";
+  if (status === "Wygasający") return "orange";
+  return "red";
+}
+
+let filtrStatus = "Wszystkie";
+let filtrTyp = "Wszystkie";
+
+document.querySelectorAll(".filtry .buttons").forEach((group, index) => {
+  group.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      group
+        .querySelectorAll("button")
+        .forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      if (index === 0) {
+        filtrStatus = btn.textContent.trim();
+      } else {
+        filtrTyp = btn.textContent.trim();
+      }
+
+      applyFilters();
+    });
+  });
+});
+
+function applyFilters() {
+  let wynik = dokumentyCache;
+
+  if (filtrStatus !== "Wszystkie") {
+    wynik = wynik.filter((d) => d.status === filtrStatus);
+  }
+
+  if (filtrTyp !== "Wszystkie") {
+    wynik = wynik.filter((d) => d.przypisanie_typ === filtrTyp.slice(0, -1));
+  }
+
+  renderDokumenty(wynik);
+}
+
+const fileInput = document.getElementById("fileInput");
+const uploadBox = document.querySelector(".upload-box");
+
+uploadBox.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", () => {
+  if (fileInput.files.length > 0) {
+    uploadBox.querySelector("p").textContent = fileInput.files[0].name;
+  }
+});
+
+uploadBox.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  uploadBox.classList.add("dragover");
+});
+
+uploadBox.addEventListener("dragleave", () => {
+  uploadBox.classList.remove("dragover");
+});
+
+uploadBox.addEventListener("drop", (e) => {
+  e.preventDefault();
+  uploadBox.classList.remove("dragover");
+
+  const file = e.dataTransfer.files[0];
+  fileInput.files = e.dataTransfer.files;
+
+  uploadBox.querySelector("p").textContent = file.name;
+});

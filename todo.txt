@@ -7,4 +7,9 @@ hero, jakieś do czego służy aplikacja, do jakich problemów jesteśmy rozwią
 
 PRZECZYTAJ -----> !!!!!!!!!!!!!!!!!!!!!!!
 
-jutro trzeba zrobić tak żeby ładnie wyglądał proces dodawania tej firmy, jakieś kolory czerwone jeżeli coś nie bangla, i może po dodaniu jakiś komunikat zielony dobrze by było pierdzielnąć że firma została dodana
+***GOTOWE*** jutro trzeba zrobić tak żeby ładnie wyglądał proces dodawania tej firmy, jakieś kolory czerwone jeżeli coś nie bangla, i może po dodaniu jakiś komunikat zielony dobrze by było pierdzielnąć że firma została dodana
+
+trzeba dokończyć dodawanie tych dokumentów i generowanie tabeli
+
+WAŻNE trzeba zrobić w tych wszystkich tabelach kolorki do statusu dokumentów
+i trzeba zrobić żeby w dashbaordzie już wyświetlały się te dokumenty wszystkie
