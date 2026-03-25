@@ -626,3 +626,165 @@ uploadBox.addEventListener("drop", (e) => {
 
   uploadBox.querySelector("p").textContent = file.name;
 });
+
+async function cancelCreatePojazdFromForm() {
+  showView("viewPojazdy", "Pojazdy");
+}
+
+async function cancelCreateKierowcęFromForm() {
+  showView("viewKierowcy", "Kierowcy");
+}
+
+async function cancelCreateDokumentFromForm() {
+  showView("viewDokumenty", "Dokumenty");
+}
+
+function obliczStatusDokumentu(dataWaznosci) {
+  const dzis = new Date();
+  const data = new Date(dataWaznosci);
+
+  if (data < dzis) return "niewazny";
+
+  const roznica = Math.ceil((data - dzis) / (1000 * 60 * 60 * 24));
+
+  if (roznica <= 30) return "wygasa";
+
+  return "ok";
+}
+
+document
+  .getElementById("dokumentTypPrzypisania")
+  .addEventListener("change", async () => {
+    const typ = document.getElementById("dokumentTypPrzypisania").value;
+    const wrapper = document.getElementById("dokumentWlascicielWrapper");
+    const select = document.getElementById("dokumentWlascicielId");
+
+    if (typ === "Firma") {
+      wrapper.style.display = "none";
+      select.innerHTML = "";
+      return;
+    }
+
+    wrapper.style.display = "block";
+    select.innerHTML = `<option>Ładowanie...</option>`;
+
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+
+    const { data: firma } = await client
+      .from("FIRMA")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (typ === "Pojazd") {
+      const { data: pojazdy } = await client
+        .from("POJAZD")
+        .select("id, numer_rejestracyjny")
+        .eq("firma_id", firma.id);
+
+      select.innerHTML = pojazdy
+        .map((p) => `<option value="${p.id}">${p.numer_rejestracyjny}</option>`)
+        .join("");
+
+      document.getElementById("dokumentWlascicielText").innerText =
+        "Wybierz pojazd";
+    }
+
+    if (typ === "Kierowca") {
+      const { data: kierowcy } = await client
+        .from("KIEROWCA")
+        .select("id, imie_nazwisko")
+        .eq("firma_id", firma.id);
+
+      select.innerHTML = kierowcy
+        .map((k) => `<option value="${k.id}">${k.imie_nazwisko}</option>`)
+        .join("");
+
+      document.getElementById("dokumentWlascicielText").innerText =
+        "Wybierz właściciela";
+    }
+  });
+
+async function dodajDokumentFromForm() {
+  const nazwa = document.getElementById("dokumentNazwa").value.trim();
+  const dataWaznosci = document.getElementById("dokumentDataWaznosci").value;
+  const typPrzypisania = document.getElementById(
+    "dokumentTypPrzypisania",
+  ).value;
+  const file = document.getElementById("fileInput").files[0];
+
+  let wlascicielId = null;
+  if (typPrzypisania !== "Firma") {
+    wlascicielId = document.getElementById("dokumentWlascicielId").value;
+  }
+
+  if (!nazwa) return alert("Podaj nazwę dokumentu");
+  if (!dataWaznosci) return alert("Podaj datę ważności");
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  let fileUrl = null;
+
+  if (file) {
+    const filePath = `firma_${firma.id}/${Date.now()}_${file.name}`;
+
+    const { error: uploadError } = await client.storage
+      .from("dokumenty")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error(uploadError);
+      return alert("Błąd podczas przesyłania pliku");
+    }
+
+    const { data: urlData } = client.storage
+      .from("dokumenty")
+      .getPublicUrl(filePath);
+
+    fileUrl = urlData.publicUrl;
+  }
+
+  const status = obliczStatusDokumentu(dataWaznosci);
+
+  const { error: insertError } = await client.from("DOKUMENT").insert({
+    firma_id: firma.id,
+    typ_wlasciciela: typPrzypisania,
+    wlasciciel_id: wlascicielId,
+    typ_dokumentu: nazwa,
+    data_waznosci: dataWaznosci,
+    status: status,
+    plik_url: fileUrl,
+  });
+
+  if (insertError) {
+    console.error(insertError);
+    return alert("Błąd podczas zapisywania dokumentu");
+  }
+
+  showView("viewDokumenty", "Dokumenty");
+
+  document.getElementById("dokumentNazwa").value = "";
+  document.getElementById("dokumentDataWaznosci").value = "";
+  document.getElementById("dokumentTypPrzypisania").value = "Pojazd";
+  document.getElementById("fileInput").value = "";
+
+  document.getElementById("dokumentWlascicielWrapper").style.display = "none";
+  document.getElementById("dokumentWlascicielId").innerHTML = "";
+  document.getElementById("dokumentNazwa").value = "";
+  document.getElementById("dokumentDataWaznosci").value = "";
+  document.getElementById("dokumentTypPrzypisania").value = "Pojazd";
+  document.getElementById("fileInput").value = "";
+
+  document.getElementById("dokumentWlascicielWrapper").style.display = "none";
+  document.getElementById("dokumentWlascicielId").innerHTML = "";
+}

@@ -444,10 +444,15 @@
             />
             <p>Typ przypisania</p>
             <select id="dokumentTypPrzypisania">
+              <option value="Firma">Firma</option>
               <option value="Pojazd">Pojazd</option>
               <option value="Kierowca">Kierowca</option>
-              <option value="Firma">Firma</option>
             </select>
+            <div id="dokumentWlascicielWrapper" style="display: none">
+              <p id="dokumentWlascicielText">Wybierz właściciela</p>
+              <select id="dokumentWlascicielId"></select>
+            </div>
+
             <div class="file-upload" id="fileUpload">
               <input
                 type="file"
@@ -463,12 +468,12 @@
             </div>
 
             <div class="createFormButtons">
-              <button class="acceptButton" onclick="dodajKierowcęFromForm()">
-                Dodaj kierowcę
+              <button class="acceptButton" onclick="dodajDokumentFromForm()">
+                Dodaj dokument
               </button>
               <button
                 class="cancelButton"
-                onclick="cancelCreateKierowcęFromForm()"
+                onclick="cancelCreateDokumentFromForm()"
               >
                 Anuluj
               </button>
