@@ -401,6 +401,16 @@ select {
   border-radius: 16px;
 }
 
+.nadchodzaceTerminy .tile.expired {
+  background-color: rgba(255, 0, 0, 0.15);
+}
+
+.nadchodzaceTerminy .tile .statusExpired {
+  color: red;
+  font-weight: bold;
+  margin-left: auto;
+}
+
 .nadchodzaceTerminy .tiles .tile .info {
   display: flex;
   flex-direction: column;
@@ -518,6 +528,7 @@ select {
   padding: 8px;
   border: none;
   background: transparent;
+  cursor: pointer;
 }
 
 .table button:hover {
@@ -539,6 +550,14 @@ select {
   gap: 24px;
   padding: 16px 0;
   border-bottom: 1px solid #eee;
+}
+
+.table-row .status p {
+  border-radius: 16px;
+  padding: 8px;
+  padding-inline: 16px;
+  text-align: center;
+  display: inline-block;
 }
 
 .dodajNowy {

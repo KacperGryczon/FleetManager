@@ -136,7 +136,7 @@
             <div class="wazneTile tile">
               <div class="info">
                 <p>Dokumenty ważne</p>
-                <p class="number">1</p>
+                <p id="wazneNumber" class="number"></p>
               </div>
               <div class="tileIcon">
                 <i class="fa-solid fa-file-circle-check"></i>
@@ -145,7 +145,7 @@
             <div class="wygasajaTile tile">
               <div class="info">
                 <p>Wygasają wkrótce</p>
-                <p class="number">2</p>
+                <p id="wygasajaNumber" class="number"></p>
               </div>
               <div class="tileIcon">
                 <i class="fa-solid fa-triangle-exclamation"></i>
@@ -154,7 +154,7 @@
             <div class="niewazneTile tile">
               <div class="info">
                 <p>Nieważne</p>
-                <p class="number">3</p>
+                <p id="nieWazneNumber" class="number"></p>
               </div>
               <div class="tileIcon">
                 <i class="fa-solid fa-circle-xmark"></i>
@@ -162,27 +162,8 @@
             </div>
           </div>
           <div class="nadchodzaceTerminy">
-            <h3>Nadchodzące terminy (14-30 dni)</h3>
-            <div class="tiles">
-              <div class="tile">
-                <div class="info">
-                  <p class="infoBold">Przegląd techniczny</p>
-                  <p>Pojazd: WA 67043</p>
-                </div>
-                <div class="terminWygasniecia">
-                  <p>Wygasa: 2026-03-20</p>
-                </div>
-              </div>
-              <div class="tile">
-                <div class="info">
-                  <p class="infoBold">Przegląd techniczny</p>
-                  <p>Pojazd: WA 67043</p>
-                </div>
-                <div class="terminWygasniecia">
-                  <p>Wygasa: 2026-03-20</p>
-                </div>
-              </div>
-            </div>
+            <h3>Nadchodzące terminy</h3>
+            <div class="tiles" id="nadchodzaceTiles"></div>
           </div>
           <h3>Szybkie akcje</h3>
           <div class="szybkieAkcje">

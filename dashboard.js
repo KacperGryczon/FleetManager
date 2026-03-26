@@ -1,4 +1,3 @@
-// Zmienna globalna do śledzenia czy firma istnieje
 let firmaExists = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -42,8 +41,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
-// FUNKCJA DO ZMIANY WIDOKÓW //
-function showView(viewId, title) {
+async function showView(viewId, title) {
   document.querySelectorAll(".inView").forEach((v) => {
     v.style.display = "none";
   });
@@ -53,14 +51,27 @@ function showView(viewId, title) {
   if (title) {
     document.getElementById("viewTitle").innerText = title;
   }
+
   if (viewId === "viewDodajPojazd") {
     loadKierowcyDoSelecta();
   }
+
   if (viewId === "viewPojazdy") {
     loadPojazdyList();
   }
+
   if (viewId === "viewKierowcy") {
     loadKierowcyList();
+  }
+
+  if (viewId === "viewDokumenty") {
+    await loadDokumentyList();
+    renderDokumenty(dokumentyCache);
+  }
+
+  if (viewId === "viewDashboard") {
+    await loadDokumentyList();
+    renderNadchodzaceTerminy();
   }
 
   setActiveMenu(viewId);
@@ -495,6 +506,18 @@ function setActiveMenu(viewId) {
   if (btn) btn.classList.add("active");
 }
 
+async function cancelCreatePojazdFromForm() {
+  showView("viewPojazdy", "Pojazdy");
+}
+
+async function cancelCreateKierowcęFromForm() {
+  showView("viewKierowcy", "Kierowcy");
+}
+
+async function cancelCreateDokumentFromForm() {
+  showView("viewDokumenty", "Dokumenty");
+}
+
 let dokumentyCache = [];
 
 async function loadDokumentyList() {
@@ -524,9 +547,13 @@ async function loadDokumentyList() {
   dokumentyCache = dokumenty;
 
   renderDokumenty(dokumentyCache);
+  updateDashboardTiles();
+  if (document.getElementById("viewDokumenty").style.display === "flex") {
+    renderDokumenty(dokumentyCache);
+  }
 }
 
-function renderDokumenty(lista) {
+async function renderDokumenty(lista) {
   const container = document.getElementById("dokumentyRows");
   container.innerHTML = "";
 
@@ -537,22 +564,77 @@ function renderDokumenty(lista) {
     return;
   }
 
-  lista.forEach((d) => {
+  for (const d of lista) {
+    let przypisanieNazwa = "";
+
+    if (d.typ_wlasciciela === "Pojazd") {
+      const { data: pojazd } = await client
+        .from("POJAZD")
+        .select("numer_rejestracyjny")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = pojazd?.numer_rejestracyjny || "—";
+    }
+
+    if (d.typ_wlasciciela === "Kierowca") {
+      const { data: kierowca } = await client
+        .from("KIEROWCA")
+        .select("imie_nazwisko")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = kierowca?.imie_nazwisko || "—";
+    }
+
+    if (d.typ_wlasciciela === "Firma") {
+      przypisanieNazwa = "Firma";
+    }
+
+    const borderKolor =
+      d.status === "ok"
+        ? "rgba(52, 243, 52, 0.53)"
+        : d.status === "wygasa"
+          ? "rgba(243, 163, 52, 0.53)"
+          : "rgba(255, 0, 0, 0.53)";
+
+    const kolor =
+      d.status === "ok"
+        ? "rgba(52, 243, 52, 0.43)"
+        : d.status === "wygasa"
+          ? "rgba(243, 163, 52, 0.43)"
+          : "rgba(255, 0, 0, 0.43)";
+
     const row = document.createElement("div");
     row.classList.add("table", "table-row");
 
+    function statusLabel(status) {
+      if (status === "ok") return "Ważny";
+      if (status === "wygasa") return "Wygasa";
+      if (status === "niewazny") return "Nieważny";
+      return status;
+    }
+
     row.innerHTML = `
-      <div>${d.nazwa}</div>
-      <div>${d.przypisanie_typ}: ${d.przypisanie_nazwa}</div>
+      <div>${d.typ_dokumentu}</div>
+      <div>${d.typ_wlasciciela}: ${przypisanieNazwa}</div>
       <div>${d.data_waznosci}</div>
-      <div class="status ${statusColor(d.status)}">${d.status}</div>
+      <div class="status"> <p style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</p></div>
       <div>
         <button><i class="fa-regular fa-eye"></i>Szczegóły</button>
       </div>
     `;
 
     container.appendChild(row);
-  });
+  }
+}
+
+function updateDashboardTiles() {
+  const wazne = dokumentyCache.filter((d) => d.status === "ok").length;
+  const wygasaja = dokumentyCache.filter((d) => d.status === "wygasa").length;
+  const niewazne = dokumentyCache.filter((d) => d.status === "niewazny").length;
+
+  document.getElementById("wazneNumber").textContent = wazne;
+  document.getElementById("wygasajaNumber").textContent = wygasaja;
+  document.getElementById("nieWazneNumber").textContent = niewazne;
 }
 
 function statusColor(status) {
@@ -587,11 +669,20 @@ function applyFilters() {
   let wynik = dokumentyCache;
 
   if (filtrStatus !== "Wszystkie") {
-    wynik = wynik.filter((d) => d.status === filtrStatus);
+    if (filtrStatus === "Ważne") wynik = wynik.filter((d) => d.status === "ok");
+    if (filtrStatus === "Wygasające")
+      wynik = wynik.filter((d) => d.status === "wygasa");
+    if (filtrStatus === "Nieważne")
+      wynik = wynik.filter((d) => d.status === "niewazny");
   }
 
   if (filtrTyp !== "Wszystkie") {
-    wynik = wynik.filter((d) => d.przypisanie_typ === filtrTyp.slice(0, -1));
+    if (filtrTyp === "Pojazdy")
+      wynik = wynik.filter((d) => d.typ_wlasciciela === "Pojazd");
+    if (filtrTyp === "Kierowcy")
+      wynik = wynik.filter((d) => d.typ_wlasciciela === "Kierowca");
+    if (filtrTyp === "Firma")
+      wynik = wynik.filter((d) => d.typ_wlasciciela === "Firma");
   }
 
   renderDokumenty(wynik);
@@ -627,25 +718,16 @@ uploadBox.addEventListener("drop", (e) => {
   uploadBox.querySelector("p").textContent = file.name;
 });
 
-async function cancelCreatePojazdFromForm() {
-  showView("viewPojazdy", "Pojazdy");
-}
-
-async function cancelCreateKierowcęFromForm() {
-  showView("viewKierowcy", "Kierowcy");
-}
-
-async function cancelCreateDokumentFromForm() {
-  showView("viewDokumenty", "Dokumenty");
-}
-
 function obliczStatusDokumentu(dataWaznosci) {
   const dzis = new Date();
+  dzis.setHours(0, 0, 0, 0);
+
   const data = new Date(dataWaznosci);
+  data.setHours(0, 0, 0, 0);
 
   if (data < dzis) return "niewazny";
 
-  const roznica = Math.ceil((data - dzis) / (1000 * 60 * 60 * 24));
+  const roznica = Math.floor((data - dzis) / (1000 * 60 * 60 * 24));
 
   if (roznica <= 30) return "wygasa";
 
@@ -715,11 +797,6 @@ async function dodajDokumentFromForm() {
   ).value;
   const file = document.getElementById("fileInput").files[0];
 
-  let wlascicielId = null;
-  if (typPrzypisania !== "Firma") {
-    wlascicielId = document.getElementById("dokumentWlascicielId").value;
-  }
-
   if (!nazwa) return alert("Podaj nazwę dokumentu");
   if (!dataWaznosci) return alert("Podaj datę ważności");
 
@@ -732,6 +809,14 @@ async function dodajDokumentFromForm() {
     .select("id")
     .eq("user_id", user.id)
     .single();
+
+  let wlascicielId;
+
+  if (typPrzypisania === "Firma") {
+    wlascicielId = firma.id;
+  } else {
+    wlascicielId = document.getElementById("dokumentWlascicielId").value;
+  }
 
   let fileUrl = null;
 
@@ -773,6 +858,9 @@ async function dodajDokumentFromForm() {
 
   showView("viewDokumenty", "Dokumenty");
 
+  await loadDokumentyList();
+  updateDashboardTiles();
+
   document.getElementById("dokumentNazwa").value = "";
   document.getElementById("dokumentDataWaznosci").value = "";
   document.getElementById("dokumentTypPrzypisania").value = "Pojazd";
@@ -787,4 +875,89 @@ async function dodajDokumentFromForm() {
 
   document.getElementById("dokumentWlascicielWrapper").style.display = "none";
   document.getElementById("dokumentWlascicielId").innerHTML = "";
+}
+
+function dniDoWygasniecia(data) {
+  const dzis = new Date();
+  dzis.setHours(0, 0, 0, 0);
+
+  const termin = new Date(data);
+  termin.setHours(0, 0, 0, 0);
+
+  return Math.floor((termin - dzis) / (1000 * 60 * 60 * 24));
+}
+
+async function buildTile(d) {
+  let przypisanieNazwa = "";
+
+  if (d.typ_wlasciciela === "Pojazd") {
+    const { data } = await client
+      .from("POJAZD")
+      .select("numer_rejestracyjny")
+      .eq("id", d.wlasciciel_id)
+      .single();
+    przypisanieNazwa = data?.numer_rejestracyjny || "—";
+  }
+
+  if (d.typ_wlasciciela === "Kierowca") {
+    const { data } = await client
+      .from("KIEROWCA")
+      .select("imie_nazwisko")
+      .eq("id", d.wlasciciel_id)
+      .single();
+    przypisanieNazwa = data?.imie_nazwisko || "—";
+  }
+
+  if (d.typ_wlasciciela === "Firma") {
+    const { data } = await client
+      .from("FIRMA")
+      .select("nazwa")
+      .eq("id", d.wlasciciel_id)
+      .single();
+    przypisanieNazwa = data?.nazwa || "Firma";
+  }
+
+  const tile = document.createElement("div");
+  tile.classList.add("tile");
+
+  tile.innerHTML = `
+    <div class="info">
+      <p class="infoBold">${d.typ_dokumentu}</p>
+      <p>${d.typ_wlasciciela}: ${przypisanieNazwa}</p>
+    </div>
+    <div class="terminWygasniecia" id="statusBox"></div>
+  `;
+
+  return tile;
+}
+
+async function renderNadchodzaceTerminy() {
+  const container = document.getElementById("nadchodzaceTiles");
+  container.innerHTML = "";
+
+  const lista = dokumentyCache.filter((d) => {
+    const dni = dniDoWygasniecia(d.data_waznosci);
+    return dni <= 30;
+  });
+
+  if (lista.length === 0) {
+    container.innerHTML = `<p>Brak nadchodzących terminów.</p>`;
+    return;
+  }
+
+  for (const d of lista) {
+    const tile = await buildTile(d);
+
+    const dni = dniDoWygasniecia(d.data_waznosci);
+    const statusBox = tile.querySelector("#statusBox");
+
+    if (dni <= 0) {
+      tile.classList.add("expired");
+      statusBox.innerHTML = `<p>Nieważny</p>`;
+    } else {
+      statusBox.innerHTML = `<p>Wygasa: ${d.data_waznosci}</p>`;
+    }
+
+    container.appendChild(tile);
+  }
 }
