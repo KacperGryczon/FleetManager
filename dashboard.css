@@ -99,6 +99,33 @@ body {
   top: 0;
 }
 
+.view .topBar .topBarLeft {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.view .topBar .topBarLeft .menuButton {
+  padding: 10px;
+  font-size: 1.5rem;
+  -webkit-box-shadow: 0px 0px 15px -8px rgba(66, 68, 90, 1);
+  -moz-box-shadow: 0px 0px 15px -8px rgba(66, 68, 90, 1);
+  box-shadow: 0px 0px 15px -8px rgba(66, 68, 90, 1);
+  border: 1px solid rgb(246, 246, 246);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all ease 0.3;
+}
+
+.view .topBar .topBarLeft .menuButton:hover {
+  -webkit-box-shadow: 0px 0px 18px -8px rgba(66, 68, 90, 1);
+  -moz-box-shadow: 0px 0px 18px -8px rgba(66, 68, 90, 1);
+  box-shadow: 0px 0px 18px -8px rgba(66, 68, 90, 1);
+}
+
 .view .topBar .userInfo {
   padding: 12px;
   border-radius: 12px;
@@ -428,9 +455,13 @@ select {
   padding: 8px;
   border-radius: 16px;
 }
+
+.nadchodzaceTerminy .tiles .tile.expired .terminWygasniecia {
+  background-color: rgba(206, 2, 2, 0.359);
+  border: 1px solid rgba(206, 2, 2, 0.388);
+}
 .nadchodzaceTerminy .tiles .tile .terminWygasniecia p {
-  font-size: 0.8rem;
-  color: rgba(78, 51, 1, 0.83);
+  font-size: 0.9rem;
 }
 
 .szybkieAkcje {
@@ -505,7 +536,7 @@ select {
 
 .pojazdy .table {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 24px;
   align-items: center;
   padding: 16px;
@@ -672,4 +703,24 @@ select {
 .upload-box.dragover {
   border-color: #2564f3;
   background-color: #e8f1ff;
+}
+
+@media only screen and (width <= 1100px) {
+  #menuBar {
+    display: none;
+  }
+  .view .topBar .topBarLeft .menuButton {
+    display: flex;
+  }
+}
+
+@media only screen and (width <= 900px) {
+  .dokumentyTiles {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .szybkieAkcje {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 }
