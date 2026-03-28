@@ -713,6 +713,26 @@ select {
   .view .topBar .topBarLeft .menuButton {
     display: flex;
   }
+
+  #pojazdyContainer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .pojazdTile {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .pojazdTile > * {
+    border: none;
+    padding: 0;
+  }
 }
 
 @media only screen and (width <= 900px) {
@@ -730,6 +750,10 @@ select {
   }
   .view .topBar .userInfo {
     display: none;
+  }
+  .view .topBar .topBarLeft {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 
@@ -764,6 +788,9 @@ select {
 
 @media only screen and (width <= 500px) {
   .view .main {
+    padding-inline: 20px;
+  }
+  .view .topBar {
     padding-inline: 20px;
   }
 }

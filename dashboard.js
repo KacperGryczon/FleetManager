@@ -65,7 +65,6 @@ async function showView(viewId, title) {
   }
 
   if (viewId === "viewDokumenty") {
-    await loadDokumentyList();
     renderDokumenty(dokumentyCache);
   }
 
