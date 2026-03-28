@@ -272,6 +272,7 @@ select {
   width: 20%;
   background-color: rgb(244, 244, 244);
   color: black;
+  margin: 0;
 }
 
 .createFormButtons .cancelButton:hover {
@@ -722,5 +723,47 @@ select {
   .szybkieAkcje {
     display: grid;
     grid-template-columns: 1fr;
+  }
+  .createForm .createFormGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .view .topBar .userInfo {
+    display: none;
+  }
+}
+
+@media only screen and (width <= 600px) {
+  .createFormButtons {
+    margin-top: 24px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .createFormButtons .acceptButton {
+    width: 100%;
+    margin: 0;
+  }
+
+  .createFormButtons .cancelButton {
+    width: 100%;
+  }
+  .dodajNowy .header button {
+    padding: 8px;
+    padding-inline: 20px;
+    border-radius: 8px;
+    margin-right: 0;
+    border: none;
+    background-color: rgb(246, 246, 246);
+  }
+  .dodajNowy .header p {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+@media only screen and (width <= 500px) {
+  .view .main {
+    padding-inline: 20px;
   }
 }
