@@ -8,15 +8,25 @@ body {
   display: flex;
 }
 
+body .darker {
+  filter: brightness(0.9);
+}
+
 #menuBar {
   height: 100vh;
   position: sticky;
   top: 0;
   left: 0;
+  width: 260px;
   background-color: rgb(255, 255, 255);
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgb(227, 227, 227);
+  transition: all ease 0.3s;
+}
+
+#menuBar.open {
+  transform: translateX(0);
 }
 
 #menuBar .icon-box {
@@ -85,6 +95,12 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.inView.visible {
+  opacity: 1;
 }
 
 .view .topBar {
@@ -118,6 +134,7 @@ body {
   border-radius: 12px;
   cursor: pointer;
   transition: all ease 0.3;
+  z-index: 001;
 }
 
 .view .topBar .topBarLeft .menuButton:hover {
@@ -148,6 +165,18 @@ body {
   font-weight: 550;
 }
 
+.view .main .roleWSys {
+  margin-bottom: 24px;
+}
+
+.view .main .role {
+  margin-bottom: 12px;
+}
+
+.view .main .role span {
+  font-weight: bold;
+  margin-right: 4px;
+}
 .create-company-container {
   display: flex;
   flex-direction: column;
@@ -257,6 +286,20 @@ select {
   border: 1px solid rgb(37, 88, 243);
 }
 
+.createForm .info {
+  padding: 12px;
+  background-color: rgba(37, 88, 243, 0.2);
+  margin-top: 24px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(37, 88, 243, 0.53);
+}
+
+.createForm .info span {
+  font-weight: bold;
+  margin-right: 6px;
+}
+
 .createFormButtons {
   margin-top: 24px;
   width: 100%;
@@ -272,7 +315,6 @@ select {
   width: 20%;
   background-color: rgb(244, 244, 244);
   color: black;
-  margin: 0;
 }
 
 .createFormButtons .cancelButton:hover {
@@ -314,8 +356,6 @@ select {
   border: 3px solid rgb(0, 255, 85);
   background-color: rgba(112, 247, 157, 0.573);
 }
-
-/*DASHBOARD*/
 
 .dokumentyTiles {
   display: grid;
@@ -512,6 +552,7 @@ select {
   padding: 24px;
   border-radius: 16px;
   background-color: white;
+  margin-bottom: 32px;
 }
 
 .pojazdy .titleButton {
@@ -706,10 +747,13 @@ select {
   background-color: #e8f1ff;
 }
 
-@media only screen and (width <= 1100px) {
+@media only screen and (width <= 1200px) {
   #menuBar {
-    display: none;
+    position: fixed;
+    transform: translateX(-100%);
+    z-index: 100;
   }
+
   .view .topBar .topBarLeft .menuButton {
     display: flex;
   }

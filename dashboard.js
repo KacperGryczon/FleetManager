@@ -41,12 +41,26 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
+async function initApp() {
+  await ensureUserHasRole();
+  await applyRoleRestrictions();
+  showView("viewDashboard");
+}
+
 async function showView(viewId, title) {
-  document.querySelectorAll(".inView").forEach((v) => {
+  const views = document.querySelectorAll(".inView");
+
+  views.forEach((v) => {
     v.style.display = "none";
+    v.classList.remove("visible");
   });
 
-  document.getElementById(viewId).style.display = "flex";
+  const newView = document.getElementById(viewId);
+  newView.style.display = "flex";
+
+  requestAnimationFrame(() => {
+    newView.classList.add("visible");
+  });
 
   if (title) {
     document.getElementById("viewTitle").innerText = title;
@@ -71,6 +85,9 @@ async function showView(viewId, title) {
   if (viewId === "viewDashboard") {
     await loadDokumentyList();
     renderNadchodzaceTerminy();
+  }
+  if (viewId === "viewUżytkownicy") {
+    loadUzytkownicyList();
   }
 
   setActiveMenu(viewId);
@@ -99,6 +116,129 @@ document.querySelectorAll("[data-view]").forEach((btn) => {
     showView(viewId, title);
   });
 });
+
+async function ensureUserHasRole() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return;
+
+  const { data: existing } = await client
+    .from("UZYTKOWNIK")
+    .select("*")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (existing) return;
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!firma) return;
+
+  await client.from("UZYTKOWNIK").insert({
+    firma_id: firma.id,
+    email: user.email,
+    rola: "Właściciel",
+    status: "aktywny",
+  });
+
+  console.log("Dodano właściciela firmy do tabeli UZYTKOWNIK");
+}
+
+async function getUserRole() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: u } = await client
+    .from("UZYTKOWNIK")
+    .select("rola")
+    .eq("email", user.email)
+    .single();
+
+  return u?.rola;
+}
+
+const PERMISSIONS = {
+  Właściciel: {
+    canManageFleet: true,
+    canManageDrivers: true,
+    canManageDocuments: true,
+    canManageUsers: true,
+    canViewAll: true,
+    canViewOwn: true,
+  },
+  Administrator: {
+    canManageFleet: true,
+    canManageDrivers: true,
+    canManageDocuments: true,
+    canManageUsers: false,
+    canViewAll: true,
+    canViewOwn: true,
+  },
+  Kierowca: {
+    canManageFleet: false,
+    canManageDrivers: false,
+    canManageDocuments: false,
+    canManageUsers: false,
+    canViewAll: false,
+    canViewOwn: true,
+  },
+  Przeglądający: {
+    canManageFleet: false,
+    canManageDrivers: false,
+    canManageDocuments: false,
+    canManageUsers: false,
+    canViewAll: true,
+    canViewOwn: false,
+  },
+};
+
+async function can(action) {
+  const role = await getUserRole();
+  return PERMISSIONS[role]?.[action] === true;
+}
+
+async function applyRoleRestrictions() {
+  const role = await getUserRole();
+
+  if (!(await can("canManageUsers"))) {
+    document.getElementById("menuUżytkownicy").style.display = "none";
+  }
+
+  if (!(await can("canManageFleet"))) {
+    document.getElementById("menuDodajPojazd").style.display = "none";
+  }
+
+  if (!(await can("canManageDrivers"))) {
+    document.getElementById("menuDodajKierowce").style.display = "none";
+  }
+
+  if (!(await can("canManageDocuments"))) {
+    document.getElementById("menuDodajDokument").style.display = "none";
+  }
+  if (role === "Przeglądający") {
+    document
+      .querySelectorAll(".acceptButton")
+      .forEach((btn) => (btn.style.display = "none"));
+
+    document
+      .querySelectorAll(".deleteButton")
+      .forEach((btn) => (btn.style.display = "none"));
+
+    document
+      .querySelectorAll(".editButton")
+      .forEach((btn) => (btn.style.display = "none"));
+
+    const menuUzytkownicy = document.getElementById("menuUżytkownicy");
+    if (menuUzytkownicy) menuUzytkownicy.style.display = "none";
+  }
+}
 
 async function createFirmaFromForm() {
   const nazwa = document.getElementById("firmaNazwa").value.trim();
@@ -205,6 +345,10 @@ async function dodajPojazdFromForm() {
     "pojazdNumerVIN",
   ];
 
+  if (!(await can("canManageFleet"))) {
+    return alert("Nie masz uprawnień do dodawania pojazdów");
+  }
+
   let hasError = false;
 
   fields.forEach((id) => {
@@ -286,6 +430,22 @@ async function dodajPojazdFromForm() {
 }
 
 async function loadPojazdyList() {
+  const role = await getUserRole();
+
+  if (role === "Kierowca") {
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+
+    const { data } = await client
+      .from("POJAZD")
+      .select("*")
+      .eq("przypisany_kierowca_id", user.id);
+
+    renderPojazdy(data);
+    return;
+  }
+
   const container = document.getElementById("pojazdyRows");
   container.innerHTML = "";
 
@@ -359,6 +519,10 @@ async function dodajKierowcęFromForm() {
     "kierowcaTelefon",
     "kierowcaMail",
   ];
+
+  if (!(await can("canManageDrivers"))) {
+    return alert("Nie masz uprawnień do dodawania kierowców");
+  }
 
   let hasError = false;
 
@@ -520,6 +684,22 @@ async function cancelCreateDokumentFromForm() {
 let dokumentyCache = [];
 
 async function loadDokumentyList() {
+  const role = await getUserRole();
+
+  if (role === "Kierowca") {
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+
+    const { data } = await client
+      .from("DOKUMENT")
+      .select("*")
+      .eq("wlasciciel_id", user.id);
+
+    renderDokumenty(data);
+    return;
+  }
+
   const container = document.getElementById("dokumentyRows");
   container.innerHTML = "";
 
@@ -796,6 +976,10 @@ async function dodajDokumentFromForm() {
   ).value;
   const file = document.getElementById("fileInput").files[0];
 
+  if (!(await can("canManageDocuments"))) {
+    return alert("Nie masz uprawnień do dodawania dokumentów");
+  }
+
   if (!nazwa) return alert("Podaj nazwę dokumentu");
   if (!dataWaznosci) return alert("Podaj datę ważności");
 
@@ -959,4 +1143,108 @@ async function renderNadchodzaceTerminy() {
 
     container.appendChild(tile);
   }
+}
+
+async function dodajUżytkownikaFromForm() {
+  const email = document.getElementById("użytkownikMail").value.trim();
+  const rola = document.getElementById("selectTypUżytkownika").value;
+
+  if (!email) return alert("Podaj adres e-mail");
+
+  if (!(await can("canManageUsers"))) {
+    return alert("Nie masz uprawnień do dodawania użytkowników");
+  }
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: firma, error: firmaError } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (firmaError) {
+    console.error(firmaError);
+    return alert("Nie udało się pobrać firmy");
+  }
+
+  const { error: inviteError } =
+    await client.auth.admin.inviteUserByEmail(email);
+
+  if (inviteError) {
+    console.error(inviteError);
+    return alert("Nie udało się wysłać zaproszenia");
+  }
+
+  const { error: insertError } = await client.from("UZYTKOWNIK").insert({
+    firma_id: firma.id,
+    email: email,
+    rola: rola,
+    status: "zaproszony",
+  });
+
+  if (insertError) {
+    console.error(insertError);
+    return alert("Błąd podczas dodawania użytkownika");
+  }
+
+  await loadUzytkownicyList();
+  cancelCreateUżytkownikaFromForm();
+}
+
+let uzytkownicyCache = [];
+
+async function loadUzytkownicyList() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const { data, error } = await client
+    .from("UZYTKOWNIK")
+    .select("*")
+    .eq("firma_id", firma.id)
+    .order("data_utworzenia", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  uzytkownicyCache = data;
+  renderUzytkownicy(data);
+}
+
+function renderUzytkownicy(lista) {
+  const container = document.getElementById("użytkownicyRows");
+  container.innerHTML = "";
+
+  lista.forEach((u) => {
+    const row = document.createElement("div");
+    row.classList.add("table", "table-row");
+
+    row.innerHTML = `
+      <div>${u.email}</div>
+      <div>${u.rola}</div>
+      <div>${u.status}</div>
+      <div>
+        <button data-view="viewSzczegolyUzytkownika" data-id="${u.id}" data-title="Szczegóły użytkownika">
+          <i class="fa-regular fa-eye"></i>Szczegóły
+        </button>
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+async function cancelCreateUżytkownikaFromForm() {
+  showView("viewUżytkownicy", "Użytkownicy");
 }

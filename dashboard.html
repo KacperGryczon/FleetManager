@@ -470,7 +470,84 @@
       </div>
 
       <div id="viewUżytkownicy" class="inView">
-        <div class="main"><h2>Użytkownicy (placeholder)</h2></div>
+        <div class="main">
+          <div class="pojazdy">
+            <div class="titleButton">
+              <h3>Lista użytkowników</h3>
+              <button
+                data-view="viewDodajUzytkownika"
+                data-title="Dodaj użytkownika"
+              >
+                Dodaj użytkownika
+              </button>
+            </div>
+            <div class="table table-header">
+              <div>E-MAIL</div>
+              <div>ROLA</div>
+              <div>PRZYPISANY KIEROWCA</div>
+              <div>AKCJE</div>
+            </div>
+
+            <div id="użytkownicyRows"></div>
+          </div>
+          <div class="pojazdy">
+            <h3 class="roleWSys">Role w systemie</h3>
+            <p class="role">
+              <span>Właściciel:</span>Pełny dostęp do wszystkich funkcji
+            </p>
+            <p class="role">
+              <span>Administrator:</span>Zarządzanie flotą, kierowcami i
+              dokumentami
+            </p>
+            <p class="role">
+              <span>Kierowca:</span>Dostęp do swoich dokumentów i przypisanego
+              pojazdu
+            </p>
+            <p class="role"><span>Przeglądający:</span>Tylko odczyt danych</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewDodajUzytkownika" class="inView dodajNowy">
+        <div class="main">
+          <div class="header">
+            <button data-view="viewUżytkownicy" data-title="Użytkownicy">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <p>Dodaj nowego użytkownika</p>
+          </div>
+          <div class="createPojazdForm createForm">
+            <h3>Dane użytkownika</h3>
+            <p>E-mail</p>
+            <input
+              type="email"
+              id="użytkownikMail"
+              placeholder="uzytkownik@fleetmanager.pl"
+            />
+            <p>Rola w systemie</p>
+            <select id="selectTypUżytkownika">
+              <option value="Przeglądający">Przeglądający</option>
+              <option value="Właściciel">Właściciel</option>
+              <option value="Kierowca">Kierowca</option>
+              <option value="Administrator">Administrator</option>
+            </select>
+            <div class="info">
+              <span>Uwaga:</span>Użytkownik otrzyma e-mail z linkiem do
+              ustawienia hasła.
+            </div>
+            <div class="createFormButtons">
+              <button class="acceptButton" onclick="dodajUżytkownikaFromForm()">
+                Dodaj użytkownika
+              </button>
+              <button
+                class="cancelButton"
+                onclick="cancelCreateUżytkownikaFromForm()"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="viewUstawieniaFirmy" class="inView">
