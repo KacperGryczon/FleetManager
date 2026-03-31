@@ -524,6 +524,8 @@
               id="użytkownikMail"
               placeholder="uzytkownik@fleetmanager.pl"
             />
+            <p>Tymczasowe hasło</p>
+            <input type="password" id="użytkownikHaslo" placeholder="!@#$%" />
             <p>Rola w systemie</p>
             <select id="selectTypUżytkownika">
               <option value="Przeglądający">Przeglądający</option>
@@ -532,8 +534,8 @@
               <option value="Administrator">Administrator</option>
             </select>
             <div class="info">
-              <span>Uwaga:</span>Użytkownik otrzyma e-mail z linkiem do
-              ustawienia hasła.
+              <span>Uwaga:</span>Użytkownik powinien zmienić hasło po
+              zalogowaniu się na swoje konto.
             </div>
             <div class="createFormButtons">
               <button class="acceptButton" onclick="dodajUżytkownikaFromForm()">
@@ -551,7 +553,56 @@
       </div>
 
       <div id="viewUstawieniaFirmy" class="inView">
-        <div class="main"><h2>Ustawienia firmy (placeholder)</h2></div>
+        <div class="main">
+          <div class="createPojazdForm createForm">
+            <h3>Dane firmy</h3>
+            <p>Nazwa firmy</p>
+            <input
+              type="text"
+              id="firmaDaneNazwa"
+              placeholder="Transport Firma Sp. z o.o."
+            />
+            <p>E-mail firmy</p>
+            <input
+              type="email"
+              id="firmaMail"
+              placeholder="kontakt@transportfirma.pl"
+            />
+            <p>Adres</p>
+            <input
+              type="text"
+              id="firmaDaneAdres"
+              placeholder="ul. Transportowa 123, 00-001 Warszawa"
+            />
+            <div class="createFormGrid">
+              <div class="halfScreenInput">
+                <p>NIP</p>
+                <input type="text" id="firmaNIP" placeholder="1234567890" />
+              </div>
+              <div class="halfScreenInput">
+                <p>REGON</p>
+                <input type="text" id="firmaREGON" placeholder="123456789" />
+              </div>
+            </div>
+            <p>Numer licencji transportowej</p>
+            <input
+              type="text"
+              id="firmaNumerLicencji"
+              placeholder="WK/123456/2024"
+            />
+            <div class="createFormButtons">
+              <button
+                class="acceptButton acceptZmianyButton"
+                onclick="acceptZmianyFirmy()"
+              >
+                Zapisz zmiany
+              </button>
+              <button class="cancelButton" onclick="cancelZmianyFirmy()">
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="viewUstawieniaProfilu" class="inView">

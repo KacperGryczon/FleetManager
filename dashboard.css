@@ -311,6 +311,10 @@ select {
   width: 80%;
 }
 
+.createFormButtons .acceptZmianyButton {
+  width: 20%;
+}
+
 .createFormButtons .cancelButton {
   width: 20%;
   background-color: rgb(244, 244, 244);

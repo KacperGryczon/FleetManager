@@ -10,30 +10,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("userInfo-userMail").innerText = user.email;
 
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("*")
-    .eq("user_id", user.id)
+  const { data: uzytkownik, error: uzytkownikError } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id, rola")
+    .eq("email", user.email)
     .maybeSingle();
 
-  firmaExists = !!firma;
-
-  if (!firma) {
+  if (!uzytkownik) {
     document.querySelectorAll(".viewButton").forEach((item) => {
       if (!item.classList.contains("always-visible")) {
         item.style.display = "none";
-        document.getElementById("logoutBtn").style.display = "flex";
       }
     });
 
+    document.getElementById("logoutBtn").style.display = "flex";
     showView("viewCreateFirma");
-  } else {
-    document.querySelectorAll(".viewButton").forEach((item) => {
-      item.style.display = "flex";
-    });
-
-    showView("viewDashboard");
+    return;
   }
+
+  document.querySelectorAll(".viewButton").forEach((item) => {
+    item.style.display = "flex";
+  });
+
+  showView("viewDashboard");
 });
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -89,8 +88,35 @@ async function showView(viewId, title) {
   if (viewId === "viewUżytkownicy") {
     loadUzytkownicyList();
   }
+  if (viewId === "viewUstawieniaFirmy") {
+    loadFirmaSettings();
+  }
 
   setActiveMenu(viewId);
+}
+
+async function goToDashboard() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id, rola")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (!uzytkownik) {
+    showView("viewCreateFirma", "Dodaj firmę");
+    return;
+  }
+
+  showView("viewDashboard", "Pulpit");
 }
 
 document.querySelectorAll("[data-view]").forEach((btn) => {
@@ -1148,34 +1174,35 @@ async function renderNadchodzaceTerminy() {
 async function dodajUżytkownikaFromForm() {
   const email = document.getElementById("użytkownikMail").value.trim();
   const rola = document.getElementById("selectTypUżytkownika").value;
+  const haslo = document.getElementById("użytkownikHaslo").value.trim();
 
   if (!email) return alert("Podaj adres e-mail");
+  if (!haslo) return alert("Podaj hasło tymczasowe");
+  if (haslo.length < 6) return alert("Hasło musi mieć co najmniej 6 znaków");
 
   if (!(await can("canManageUsers"))) {
     return alert("Nie masz uprawnień do dodawania użytkowników");
   }
 
   const {
-    data: { user },
+    data: { user: owner },
+    error: ownerError,
   } = await client.auth.getUser();
+
+  if (ownerError || !owner) {
+    console.error(ownerError);
+    return alert("Nie udało się pobrać zalogowanego użytkownika");
+  }
 
   const { data: firma, error: firmaError } = await client
     .from("FIRMA")
     .select("id")
-    .eq("user_id", user.id)
+    .eq("user_id", owner.id)
     .single();
 
-  if (firmaError) {
+  if (firmaError || !firma) {
     console.error(firmaError);
-    return alert("Nie udało się pobrać firmy");
-  }
-
-  const { error: inviteError } =
-    await client.auth.admin.inviteUserByEmail(email);
-
-  if (inviteError) {
-    console.error(inviteError);
-    return alert("Nie udało się wysłać zaproszenia");
+    return alert("Nie udało się pobrać firmy właściciela");
   }
 
   const { error: insertError } = await client.from("UZYTKOWNIK").insert({
@@ -1189,6 +1216,10 @@ async function dodajUżytkownikaFromForm() {
     console.error(insertError);
     return alert("Błąd podczas dodawania użytkownika");
   }
+
+  alert(
+    "Użytkownik dodany do Twojej firmy. Ustal z nim sposób pierwszego logowania / ustawienia hasła.",
+  );
 
   await loadUzytkownicyList();
   cancelCreateUżytkownikaFromForm();
@@ -1247,4 +1278,88 @@ function renderUzytkownicy(lista) {
 
 async function cancelCreateUżytkownikaFromForm() {
   showView("viewUżytkownicy", "Użytkownicy");
+}
+
+async function loadFirmaSettings() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return;
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (!uzytkownik) return;
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("*")
+    .eq("id", uzytkownik.firma_id)
+    .single();
+
+  if (!firma) return;
+
+  document.getElementById("firmaDaneNazwa").value = firma.nazwa || "";
+  document.getElementById("firmaMail").value = firma.email || "";
+  document.getElementById("firmaDaneAdres").value = firma.adres || "";
+  document.getElementById("firmaNIP").value = firma.nip || "";
+  document.getElementById("firmaREGON").value = firma.regon || "";
+  document.getElementById("firmaNumerLicencji").value =
+    firma.numer_licencji || "";
+  console.log(firma.nazwa);
+}
+
+async function acceptZmianyFirmy() {
+  const nazwa = document.getElementById("firmaDaneNazwa").value.trim();
+  const email = document.getElementById("firmaMail").value.trim();
+  const adres = document.getElementById("firmaDaneAdres").value.trim();
+  const nip = document.getElementById("firmaNIP").value.trim();
+  const regon = document.getElementById("firmaREGON").value.trim();
+  const numerLicencji = document
+    .getElementById("firmaNumerLicencji")
+    .value.trim();
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return alert("Brak zalogowanego użytkownika.");
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  console.log("firma_id użytkownika:", uzytkownik.firma_id);
+
+  if (!uzytkownik) return alert("Nie znaleziono firmy użytkownika.");
+
+  const { error } = await client
+    .from("FIRMA")
+    .update({
+      nazwa,
+      email,
+      adres,
+      nip,
+      regon,
+      numer_licencji: numerLicencji,
+    })
+    .eq("id", uzytkownik.firma_id);
+
+  if (error) {
+    console.error(error);
+    return alert("Nie udało się zapisać zmian.");
+  }
+
+  alert("Zapisano zmiany.");
+  showView("viewDashboard", "Pulpit");
+}
+
+function cancelZmianyFirmy() {
+  showView("viewDashboard", "Pulpit");
 }
