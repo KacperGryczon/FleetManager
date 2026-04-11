@@ -12,7 +12,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("userInfo-userMail").innerText = user.email;
 
-  showView("viewDashboard");
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (uzytkownik && uzytkownik.firma_id) {
+    firmaExists = true;
+    await showView("viewDashboard");
+  } else {
+    await showView("viewCreateFirma", "Dodaj firmę");
+  }
 });
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -35,35 +46,14 @@ function hideLoader() {
 }
 
 async function showView(viewId, title) {
-  // WŁĄCZAMY LOADER NATYCHMIAST
   showLoader();
 
-  // --- GUARD FIRMY ---
-  if (viewId === "viewDashboard") {
-    const {
-      data: { user },
-    } = await client.auth.getUser();
-
-    const { data: uzytkownik } = await client
-      .from("UZYTKOWNIK")
-      .select("firma_id")
-      .eq("email", user.email)
-      .maybeSingle();
-
-    if (!uzytkownik || !uzytkownik.firma_id) {
-      viewId = "viewCreateFirma";
-      title = "Dodaj firmę";
-    }
-  }
-
-  // UKRYWAMY WSZYSTKIE WIDOKI
   const views = document.querySelectorAll(".inView");
   views.forEach((v) => {
     v.style.display = "none";
     v.classList.remove("visible");
   });
 
-  // POKAZUJEMY NOWY WIDOK
   const newView = document.getElementById(viewId);
   newView.style.display = "flex";
 
@@ -75,20 +65,18 @@ async function showView(viewId, title) {
     document.getElementById("viewTitle").innerText = title;
   }
 
-  // ŁADOWANIE DANYCH DLA WIDOKÓW
-  if (viewId === "viewDodajPojazd") loadKierowcyDoSelecta();
-  if (viewId === "viewPojazdy") loadPojazdyList();
-  if (viewId === "viewKierowcy") loadKierowcyList();
-  if (viewId === "viewDokumenty") renderDokumenty(dokumentyCache);
+  if (viewId === "viewDodajPojazd") await loadKierowcyDoSelecta();
+  if (viewId === "viewPojazdy") await loadPojazdyList();
+  if (viewId === "viewKierowcy") await loadKierowcyList();
+  if (viewId === "viewDokumenty") await loadDokumentyList();
   if (viewId === "viewDashboard") {
     await loadDokumentyList();
-    renderNadchodzaceTerminy();
+    await renderNadchodzaceTerminy();
   }
-  if (viewId === "viewUżytkownicy") loadUzytkownicyList();
-  if (viewId === "viewUstawieniaFirmy") loadFirmaSettings();
-  if (viewId === "viewUstawieniaProfilu") loadUserSettings();
+  if (viewId === "viewUżytkownicy") await loadUzytkownicyList();
+  if (viewId === "viewUstawieniaFirmy") await loadFirmaSettings();
+  if (viewId === "viewUstawieniaProfilu") await loadUserSettings();
 
-  // WYŁĄCZAMY LOADER DOPIERO TERAZ
   hideLoader();
 
   setActiveMenu(viewId);
@@ -706,8 +694,12 @@ async function cancelCreateDokumentFromForm() {
 }
 
 let dokumentyCache = [];
+let currentRenderRequestId = 0;
 
 async function loadDokumentyList() {
+  const container = document.getElementById("dokumentyRows");
+  container.innerHTML = "";
+
   const role = await getUserRole();
 
   if (role === "Kierowca") {
@@ -720,12 +712,11 @@ async function loadDokumentyList() {
       .select("*")
       .eq("wlasciciel_id", user.id);
 
-    renderDokumenty(data);
+    dokumentyCache = data;
+    renderDokumenty(dokumentyCache);
+    updateDashboardTiles();
     return;
   }
-
-  const container = document.getElementById("dokumentyRows");
-  container.innerHTML = "";
 
   const {
     data: { user },
@@ -751,9 +742,6 @@ async function loadDokumentyList() {
 
   renderDokumenty(dokumentyCache);
   updateDashboardTiles();
-  if (document.getElementById("viewDokumenty").style.display === "flex") {
-    renderDokumenty(dokumentyCache);
-  }
 }
 
 async function renderDokumenty(lista) {
@@ -1063,9 +1051,8 @@ async function dodajDokumentFromForm() {
     return alert("Błąd podczas zapisywania dokumentu");
   }
 
-  showView("viewDokumenty", "Dokumenty");
+  await showView("viewDokumenty", "Dokumenty");
 
-  await loadDokumentyList();
   updateDashboardTiles();
 
   document.getElementById("dokumentNazwa").value = "";
@@ -1139,6 +1126,7 @@ async function buildTile(d) {
 }
 
 async function renderNadchodzaceTerminy() {
+  const requestId = ++currentRenderRequestId;
   const container = document.getElementById("nadchodzaceTiles");
   container.innerHTML = "";
 
@@ -1153,7 +1141,17 @@ async function renderNadchodzaceTerminy() {
   }
 
   for (const d of lista) {
+    // Jeśli request ID się zmienił, to znaczy że user wyszedł z tego widoku - przerwij renderowanie
+    if (requestId !== currentRenderRequestId) {
+      return;
+    }
+
     const tile = await buildTile(d);
+
+    // Ponownie sprawdzić ID przed dodaniem do DOM
+    if (requestId !== currentRenderRequestId) {
+      return;
+    }
 
     const dni = dniDoWygasniecia(d.data_waznosci);
     const statusBox = tile.querySelector("#statusBox");
@@ -1162,6 +1160,7 @@ async function renderNadchodzaceTerminy() {
       tile.classList.add("expired");
       statusBox.innerHTML = `<p>Nieważny</p>`;
     } else {
+      tile.classList.add("expireSoon");
       statusBox.innerHTML = `<p>Wygasa: ${d.data_waznosci}</p>`;
     }
 

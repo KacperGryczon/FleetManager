@@ -100,6 +100,7 @@ body .darker {
 }
 
 .inView.visible {
+  display: flex !important;
   opacity: 1;
 }
 
@@ -480,6 +481,12 @@ select {
 
 .nadchodzaceTerminy .tile.expired {
   background-color: rgba(255, 0, 0, 0.15);
+  border: 1px solid rgba(206, 2, 2, 0.5);
+}
+
+.nadchodzaceTerminy .tile.expireSoon {
+  background-color: rgba(250, 195, 92, 0.3);
+  border: 1px solid rgba(250, 195, 92, 0.7);
 }
 
 .nadchodzaceTerminy .tile .statusExpired {
@@ -509,6 +516,11 @@ select {
 .nadchodzaceTerminy .tiles .tile.expired .terminWygasniecia {
   background-color: rgba(206, 2, 2, 0.359);
   border: 1px solid rgba(206, 2, 2, 0.388);
+}
+
+.nadchodzaceTerminy .tiles .tile.expireSoon .terminWygasniecia {
+  background-color: rgba(251, 180, 49, 0.4);
+  border: 1px solid rgba(251, 180, 49, 0.7);
 }
 .nadchodzaceTerminy .tiles .tile .terminWygasniecia p {
   font-size: 0.9rem;
@@ -786,6 +798,10 @@ select {
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
   margin-bottom: 12px;
+}
+
+#dokumentyRows p {
+  margin-top: 16px;
 }
 
 @keyframes spin {
