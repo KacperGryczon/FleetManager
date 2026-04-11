@@ -606,7 +606,63 @@
       </div>
 
       <div id="viewUstawieniaProfilu" class="inView">
-        <div class="main"><h2>Ustawienia profilu (placeholder)</h2></div>
+        <div class="main">
+          <div class="createPojazdForm createForm">
+            <h3>Dane osobowe</h3>
+            <p>E-mail</p>
+            <input
+              type="email"
+              id="userMail"
+              placeholder="admin@transportfirma.pl"
+            />
+            <div class="createFormGrid">
+              <div class="halfScreenInput">
+                <p>Imię</p>
+                <input type="text" id="userImie" placeholder="Jan" />
+              </div>
+              <div class="halfScreenInput">
+                <p>Nazwisko</p>
+                <input type="text" id="userNazwisko" placeholder="Kowalski" />
+              </div>
+            </div>
+            <p>Numer telefonu</p>
+            <input type="text" id="userTelefon" placeholder="+48 123 456 789" />
+            <div class="createFormButtons">
+              <button
+                class="acceptButton acceptZmianyButton"
+                onclick="acceptZmianyUser()"
+              >
+                Zapisz zmiany
+              </button>
+              <button class="cancelButton" onclick="cancelZmianyUser()">
+                Anuluj
+              </button>
+            </div>
+          </div>
+          <div class="createPojazdForm createForm">
+            <h3>Zmiana hasła</h3>
+            <p>Obecne hasło</p>
+            <input
+              type="password"
+              id="userHaslo"
+              placeholder="Obecne hasło"
+            />
+            <p>Nowe hasło</p>
+            <input type="password" id="userNoweHaslo" placeholder="Nowe hasło" />
+            <p>Powtórz nowe hasło</p>
+            <input type="password" id="userNoweHasloPowtorz" placeholder="Powtórz nowe hasło" />
+            <div class="createFormButtons">
+              <button
+                class="acceptButton acceptZmianyButton"
+                onclick="acceptZmianyUser()"
+              >
+                Zmień hasło
+              </button>
+              <button class="cancelButton" onclick="cancelZmianyUser()">
+                Anuluj
+              </button>
+            </div>
+        </div>
       </div>
     </div>
   </body>

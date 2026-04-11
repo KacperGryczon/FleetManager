@@ -249,6 +249,7 @@ body .darker {
   -moz-box-shadow: 0px 0px 15px -8px rgba(66, 68, 90, 1);
   box-shadow: 0px 0px 15px -8px rgba(66, 68, 90, 1);
   background-color: white;
+  margin-bottom: 32px;
 }
 
 .createForm h3 {
@@ -275,6 +276,10 @@ select {
   border-radius: 8px;
   border: 1px solid rgb(180, 180, 180);
   font-size: 1rem;
+}
+
+.createForm input .dotInput {
+  -webkit-text-security: disc;
 }
 
 .createForm input::placeholder,

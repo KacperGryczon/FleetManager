@@ -91,6 +91,9 @@ async function showView(viewId, title) {
   if (viewId === "viewUstawieniaFirmy") {
     loadFirmaSettings();
   }
+  if (viewId === "viewUstawieniaProfilu") {
+    loadUserSettings();
+  }
 
   setActiveMenu(viewId);
 }
@@ -1361,5 +1364,127 @@ async function acceptZmianyFirmy() {
 }
 
 function cancelZmianyFirmy() {
+  showView("viewDashboard", "Pulpit");
+}
+
+async function loadUserSettings() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return;
+
+  const { data: uzytkownik, error } = await client
+    .from("UZYTKOWNIK")
+    .select("imie, nazwisko, telefon, email")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  if (!uzytkownik) return;
+
+  document.getElementById("userMail").value = uzytkownik.email || "";
+  document.getElementById("userImie").value = uzytkownik.imie || "";
+  document.getElementById("userNazwisko").value = uzytkownik.nazwisko || "";
+  document.getElementById("userTelefon").value = uzytkownik.telefon || "";
+}
+
+async function acceptZmianyUser() {
+  const email = document.getElementById("userMail").value.trim();
+  const imie = document.getElementById("userImie").value.trim();
+  const nazwisko = document.getElementById("userNazwisko").value.trim();
+  const telefon = document.getElementById("userTelefon").value.trim();
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return alert("Brak zalogowanego użytkownika.");
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (!uzytkownik) return alert("Nie znaleziono użytkownika w bazie.");
+
+  const { error } = await client
+    .from("UZYTKOWNIK")
+    .update({
+      email,
+      imie,
+      nazwisko,
+      telefon,
+    })
+    .eq("id", uzytkownik.id);
+
+  if (error) {
+    console.error(error);
+    return alert("Nie udało się zapisać zmian.");
+  }
+
+  alert("Zapisano zmiany.");
+  showView("viewDashboard", "Pulpit");
+}
+
+function cancelZmianyUser() {
+  showView("viewDashboard", "Pulpit");
+}
+
+async function acceptZmianyUser() {
+  const obecneHaslo = document.getElementById("userHaslo").value.trim();
+  const noweHaslo = document.getElementById("userNoweHaslo").value.trim();
+  const noweHasloPowtorz = document
+    .getElementById("userNoweHasloPowtorz")
+    .value.trim();
+
+  if (noweHaslo !== noweHasloPowtorz) {
+    return alert("Nowe hasła nie są takie same.");
+  }
+
+  const hasNumber = /\d/.test(noweHaslo);
+  const hasSpecial = /[^A-Za-z0-9]/.test(noweHaslo);
+
+  if (noweHaslo.length < 10 || !hasNumber || !hasSpecial) {
+    return alert(
+      "Hasło musi mieć min. 10 znaków, zawierać cyfrę i znak specjalny.",
+    );
+  }
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) return alert("Brak zalogowanego użytkownika.");
+
+  const { error: loginError } = await client.auth.signInWithPassword({
+    email: user.email,
+    password: obecneHaslo,
+  });
+
+  if (loginError) {
+    console.error(loginError);
+    return alert("Obecne hasło jest nieprawidłowe.");
+  }
+
+  const { error: updateError } = await client.auth.updateUser({
+    password: noweHaslo,
+  });
+
+  if (updateError) {
+    console.error(updateError);
+    return alert("Nie udało się zmienić hasła.");
+  }
+
+  alert("Hasło zostało zmienione.");
+  showView("viewDashboard", "Pulpit");
+}
+
+function cancelZmianyUser() {
   showView("viewDashboard", "Pulpit");
 }
