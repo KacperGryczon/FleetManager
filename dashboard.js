@@ -1,7 +1,9 @@
 let firmaExists = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const user = await checkSession(false);
+  const {
+    data: { user },
+  } = await client.auth.getUser();
 
   if (!user) {
     window.location.href = "index.html";
@@ -9,28 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   document.getElementById("userInfo-userMail").innerText = user.email;
-
-  const { data: uzytkownik, error: uzytkownikError } = await client
-    .from("UZYTKOWNIK")
-    .select("firma_id, rola")
-    .eq("email", user.email)
-    .maybeSingle();
-
-  if (!uzytkownik) {
-    document.querySelectorAll(".viewButton").forEach((item) => {
-      if (!item.classList.contains("always-visible")) {
-        item.style.display = "none";
-      }
-    });
-
-    document.getElementById("logoutBtn").style.display = "flex";
-    showView("viewCreateFirma");
-    return;
-  }
-
-  document.querySelectorAll(".viewButton").forEach((item) => {
-    item.style.display = "flex";
-  });
 
   showView("viewDashboard");
 });
@@ -46,14 +26,44 @@ async function initApp() {
   showView("viewDashboard");
 }
 
-async function showView(viewId, title) {
-  const views = document.querySelectorAll(".inView");
+function showLoader() {
+  document.getElementById("globalLoader").classList.remove("hidden");
+}
 
+function hideLoader() {
+  document.getElementById("globalLoader").classList.add("hidden");
+}
+
+async function showView(viewId, title) {
+  // WŁĄCZAMY LOADER NATYCHMIAST
+  showLoader();
+
+  // --- GUARD FIRMY ---
+  if (viewId === "viewDashboard") {
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+
+    const { data: uzytkownik } = await client
+      .from("UZYTKOWNIK")
+      .select("firma_id")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (!uzytkownik || !uzytkownik.firma_id) {
+      viewId = "viewCreateFirma";
+      title = "Dodaj firmę";
+    }
+  }
+
+  // UKRYWAMY WSZYSTKIE WIDOKI
+  const views = document.querySelectorAll(".inView");
   views.forEach((v) => {
     v.style.display = "none";
     v.classList.remove("visible");
   });
 
+  // POKAZUJEMY NOWY WIDOK
   const newView = document.getElementById(viewId);
   newView.style.display = "flex";
 
@@ -65,35 +75,21 @@ async function showView(viewId, title) {
     document.getElementById("viewTitle").innerText = title;
   }
 
-  if (viewId === "viewDodajPojazd") {
-    loadKierowcyDoSelecta();
-  }
-
-  if (viewId === "viewPojazdy") {
-    loadPojazdyList();
-  }
-
-  if (viewId === "viewKierowcy") {
-    loadKierowcyList();
-  }
-
-  if (viewId === "viewDokumenty") {
-    renderDokumenty(dokumentyCache);
-  }
-
+  // ŁADOWANIE DANYCH DLA WIDOKÓW
+  if (viewId === "viewDodajPojazd") loadKierowcyDoSelecta();
+  if (viewId === "viewPojazdy") loadPojazdyList();
+  if (viewId === "viewKierowcy") loadKierowcyList();
+  if (viewId === "viewDokumenty") renderDokumenty(dokumentyCache);
   if (viewId === "viewDashboard") {
     await loadDokumentyList();
     renderNadchodzaceTerminy();
   }
-  if (viewId === "viewUżytkownicy") {
-    loadUzytkownicyList();
-  }
-  if (viewId === "viewUstawieniaFirmy") {
-    loadFirmaSettings();
-  }
-  if (viewId === "viewUstawieniaProfilu") {
-    loadUserSettings();
-  }
+  if (viewId === "viewUżytkownicy") loadUzytkownicyList();
+  if (viewId === "viewUstawieniaFirmy") loadFirmaSettings();
+  if (viewId === "viewUstawieniaProfilu") loadUserSettings();
+
+  // WYŁĄCZAMY LOADER DOPIERO TERAZ
+  hideLoader();
 
   setActiveMenu(viewId);
 }
@@ -110,13 +106,12 @@ async function goToDashboard() {
 
   const { data: uzytkownik } = await client
     .from("UZYTKOWNIK")
-    .select("firma_id, rola")
+    .select("firma_id")
     .eq("email", user.email)
     .maybeSingle();
 
-  if (!uzytkownik) {
-    showView("viewCreateFirma", "Dodaj firmę");
-    return;
+  if (!uzytkownik || !uzytkownik.firma_id) {
+    return showView("viewCreateFirma", "Dodaj firmę");
   }
 
   showView("viewDashboard", "Pulpit");

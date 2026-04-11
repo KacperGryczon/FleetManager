@@ -26,6 +26,7 @@
       </div>
       <ul class="viewsMenu">
         <li
+          onclick="goToDashboard()"
           class="viewButton always-visible active"
           data-view="viewDashboard"
           data-title="Pulpit"
@@ -664,6 +665,10 @@
             </div>
         </div>
       </div>
+    </div>
+    <div id="globalLoader" class="loader hidden">
+    <div class="spinner"></div>
+    <p>Ładowanie...</p>
     </div>
   </body>
 </html>

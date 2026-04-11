@@ -756,6 +756,50 @@ select {
   background-color: #e8f1ff;
 }
 
+/* Tło loadera */
+.loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+/* Ukryty loader */
+.loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Animacja spinnera */
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #dcdcdc;
+  border-top-color: #4a90e2;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader p {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
 @media only screen and (width <= 1200px) {
   #menuBar {
     position: fixed;
