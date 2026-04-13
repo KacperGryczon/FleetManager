@@ -39,8 +39,8 @@ body.register i {
 .login p,
 .register p {
   color: grey;
-  margin-block: 12px;
   text-align: center;
+  margin-block: 12px;
 }
 
 #register_error,
@@ -48,6 +48,16 @@ body.register i {
   color: #ef4444;
   font-weight: 700;
   font-size: 1.1rem;
+}
+
+.login-register {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.login-register p {
+  margin-bottom: 12px;
 }
 
 .login .login-box {
@@ -69,7 +79,9 @@ body.register i {
 .register .register-box {
   border: none;
   padding: 32px;
-  width: 350px;
+  width: 100%;
+  max-width: 350px;
+  box-sizing: border-box;
   border-radius: 16px;
   background-color: white;
   display: flex;
@@ -143,4 +155,12 @@ body.register i {
 .view {
   display: flex;
   flex-direction: column;
+}
+
+@media only screen and (width <= 320px) {
+  .login-register {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
