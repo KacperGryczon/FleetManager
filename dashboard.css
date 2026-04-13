@@ -28,6 +28,7 @@ body .darker {
   border-right: 1px solid rgb(227, 227, 227);
   transition: all ease 0.3s;
   overflow: hidden;
+  width: 500px;
 }
 
 #menuBar.open {
@@ -58,13 +59,13 @@ body .darker {
 }
 
 #menuBar .icon-box h2 {
-  font-size: 1rem;
+  font-size: 1.3rem;
   white-space: nowrap;
 }
 
 #menuBar .icon-content .name-box p {
   color: grey;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   margin-top: 2px;
 }
 
@@ -97,9 +98,9 @@ body .darker {
 #menuBar .viewsMenu {
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
+  gap: 0.8em;
   padding-inline: 16px;
-  margin-top: 16px;
+  margin-top: 32px;
 }
 
 #menuBar .viewButton {
@@ -109,7 +110,7 @@ body .darker {
   display: flex;
   gap: 0.8em;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
 }
 
 #menuBar .viewButton:hover {
@@ -198,6 +199,7 @@ body .darker {
 .view .main {
   padding-inline: 32px;
   padding-block: 48px;
+  width: 100%;
 }
 
 .view .main h2 {
@@ -861,8 +863,9 @@ select {
 @media only screen and (width <= 1200px) {
   #menuBar {
     position: fixed;
-    transform: translateX(-260px);
+    transform: translateX(-350px);
     z-index: 100;
+    width: 350px;
   }
 
   #menuBar.open {

@@ -12,6 +12,7 @@ body.register {
   justify-content: center;
   height: 100vh;
   background-color: #f7f7f7;
+  padding-inline: 20px;
 }
 .icon-box {
   background-color: rgb(37, 88, 243);
@@ -39,6 +40,7 @@ body.register i {
 .register p {
   color: grey;
   margin-block: 12px;
+  text-align: center;
 }
 
 #register_error,
@@ -51,7 +53,9 @@ body.register i {
 .login .login-box {
   border: none;
   padding: 32px;
-  width: 350px;
+  width: 100%;
+  max-width: 350px;
+  box-sizing: border-box;
   border-radius: 16px;
   background-color: white;
   display: flex;
