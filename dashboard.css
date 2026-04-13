@@ -698,10 +698,6 @@ select {
   display: inline-block;
 }
 
-.dodajNowy {
-  padding-inline: 10%;
-}
-
 .dodajNowy .header {
   display: flex;
   align-items: center;
