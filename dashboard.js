@@ -31,6 +31,46 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
+// Menu toggle functionality
+function initMenuToggle() {
+  const menuButton = document.getElementById("menuBarOpen");
+  const menuBar = document.getElementById("menuBar");
+  const menuCloseBtn = document.getElementById("menuCloseBtn");
+  let menuOverlay = document.getElementById("menuOverlay");
+
+  // Create overlay if it doesn't exist
+  if (!menuOverlay) {
+    menuOverlay = document.createElement("div");
+    menuOverlay.id = "menuOverlay";
+    menuOverlay.className = "menuOverlay";
+    document.body.appendChild(menuOverlay);
+  }
+
+  // Toggle menu
+  menuButton.addEventListener("click", () => {
+    menuBar.classList.toggle("open");
+    menuOverlay.classList.toggle("active");
+  });
+
+  // Close menu when close button is clicked
+  menuCloseBtn.addEventListener("click", () => {
+    menuBar.classList.remove("open");
+    menuOverlay.classList.remove("active");
+  });
+
+  // Close menu when overlay is clicked
+  menuOverlay.addEventListener("click", () => {
+    menuBar.classList.remove("open");
+    menuOverlay.classList.remove("active");
+  });
+}
+
+// Initialize menu toggle when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  // Call after a short delay to ensure all elements are loaded
+  setTimeout(initMenuToggle, 100);
+});
+
 async function initApp() {
   await ensureUserHasRole();
   await applyRoleRestrictions();
@@ -80,6 +120,16 @@ async function showView(viewId, title) {
   hideLoader();
 
   setActiveMenu(viewId);
+
+  // Close mobile menu after navigation
+  if (window.innerWidth <= 1200) {
+    const menuBar = document.getElementById("menuBar");
+    const menuOverlay = document.getElementById("menuOverlay");
+    if (menuBar && menuOverlay) {
+      menuBar.classList.remove("open");
+      menuOverlay.classList.remove("active");
+    }
+  }
 }
 
 async function goToDashboard() {
