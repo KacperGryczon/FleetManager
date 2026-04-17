@@ -13,3 +13,5 @@ trzeba dokończyć dodawanie tych dokumentów i generowanie tabeli
 
 WAŻNE trzeba zrobić w tych wszystkich tabelach kolorki do statusu dokumentów
 i trzeba zrobić żeby w dashbaordzie już wyświetlały się te dokumenty wszystkie
+
+jutro trzeba będzie dodać coś takiego żeby kierowcy widzieli swoje własne dokumenty i swoje pojazdy, czyli ViewMojePojazdy i ViewMojeDokumenty, ponadto trzeba też ogarnąć żeby chowały się te przyciski w menu w zależności od roli użytkownika

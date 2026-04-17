@@ -1,6 +1,8 @@
 let firmaExists = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  firmaExists = false;
+
   const {
     data: { user },
   } = await client.auth.getUser();
@@ -31,14 +33,12 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
-// Menu toggle functionality
 function initMenuToggle() {
   const menuButton = document.getElementById("menuBarOpen");
   const menuBar = document.getElementById("menuBar");
   const menuCloseBtn = document.getElementById("menuCloseBtn");
   let menuOverlay = document.getElementById("menuOverlay");
 
-  // Create overlay if it doesn't exist
   if (!menuOverlay) {
     menuOverlay = document.createElement("div");
     menuOverlay.id = "menuOverlay";
@@ -46,35 +46,30 @@ function initMenuToggle() {
     document.body.appendChild(menuOverlay);
   }
 
-  // Toggle menu
   menuButton.addEventListener("click", () => {
     menuBar.classList.toggle("open");
     menuOverlay.classList.toggle("active");
   });
 
-  // Close menu when close button is clicked
   menuCloseBtn.addEventListener("click", () => {
     menuBar.classList.remove("open");
     menuOverlay.classList.remove("active");
   });
 
-  // Close menu when overlay is clicked
   menuOverlay.addEventListener("click", () => {
     menuBar.classList.remove("open");
     menuOverlay.classList.remove("active");
   });
 }
 
-// Initialize menu toggle when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  // Call after a short delay to ensure all elements are loaded
   setTimeout(initMenuToggle, 100);
 });
 
 async function initApp() {
   await ensureUserHasRole();
   await applyRoleRestrictions();
-  showView("viewDashboard");
+  await goToDashboard();
 }
 
 function showLoader() {
@@ -88,18 +83,34 @@ function hideLoader() {
 async function showView(viewId, title) {
   showLoader();
 
-  const views = document.querySelectorAll(".inView");
-  views.forEach((v) => {
-    v.style.display = "none";
-    v.classList.remove("visible");
+  const role = await getUserRole();
+
+  const blockedViews = {
+    Kierowca: ["viewPojazdy", "viewDodajPojazd", "viewUżytkownicy"],
+    Przeglądający: [
+      "viewDodajPojazd",
+      "viewDodajKierowce",
+      "viewDodajDokument",
+      "viewUżytkownicy",
+    ],
+  };
+
+  if (blockedViews[role]?.includes(viewId)) {
+    return showView("viewDashboard", "Pulpit");
+  }
+
+  const allViews = document.querySelectorAll(".inView");
+  allViews.forEach((view) => {
+    view.classList.remove("visible");
   });
 
-  const newView = document.getElementById(viewId);
-  newView.style.display = "flex";
+  const viewElement = document.getElementById(viewId);
+  if (!viewElement) {
+    hideLoader();
+    return;
+  }
 
-  requestAnimationFrame(() => {
-    newView.classList.add("visible");
-  });
+  viewElement.classList.add("visible");
 
   if (title) {
     document.getElementById("viewTitle").innerText = title;
@@ -118,10 +129,8 @@ async function showView(viewId, title) {
   if (viewId === "viewUstawieniaProfilu") await loadUserSettings();
 
   hideLoader();
-
   setActiveMenu(viewId);
 
-  // Close mobile menu after navigation
   if (window.innerWidth <= 1200) {
     const menuBar = document.getElementById("menuBar");
     const menuOverlay = document.getElementById("menuOverlay");
@@ -155,28 +164,24 @@ async function goToDashboard() {
   showView("viewDashboard", "Pulpit");
 }
 
-document.querySelectorAll("[data-view]").forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-view]");
+  if (!btn) return;
 
-    let viewId = btn.dataset.view;
-    let title = btn.dataset.title;
+  e.preventDefault();
+  e.stopPropagation();
 
-    if (viewId === "viewDashboard" && !firmaExists) {
-      viewId = "viewCreateFirma";
-      title = "Dodaj firmę";
-    }
+  let viewId = btn.dataset.view;
+  let title = btn.dataset.title;
 
-    if (btn.classList.contains("viewButton")) {
-      document
-        .querySelectorAll(".viewButton")
-        .forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
+  if (btn.classList.contains("viewButton")) {
+    document
+      .querySelectorAll(".viewButton")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
 
-    showView(viewId, title);
-  });
+  showView(viewId, title);
 });
 
 async function ensureUserHasRole() {
@@ -200,7 +205,9 @@ async function ensureUserHasRole() {
     .eq("user_id", user.id)
     .single();
 
-  if (!firma) return;
+  if (!firma) {
+    return;
+  }
 
   await client.from("UZYTKOWNIK").insert({
     firma_id: firma.id,
@@ -269,37 +276,58 @@ async function can(action) {
 async function applyRoleRestrictions() {
   const role = await getUserRole();
 
-  if (!(await can("canManageUsers"))) {
-    document.getElementById("menuUżytkownicy").style.display = "none";
+  document.querySelectorAll("[data-view]").forEach((btn) => {
+    btn.style.display = "none";
+  });
+
+  if (role === "Właściciel") {
+    showMenu([
+      "viewDashboard",
+      "viewPojazdy",
+      "viewKierowcy",
+      "viewDokumenty",
+      "viewUżytkownicy",
+      "viewUstawieniaFirmy",
+      "viewUstawieniaProfilu",
+    ]);
   }
 
-  if (!(await can("canManageFleet"))) {
-    document.getElementById("menuDodajPojazd").style.display = "none";
+  if (role === "Administrator") {
+    showMenu([
+      "viewDashboard",
+      "viewPojazdy",
+      "viewKierowcy",
+      "viewDokumenty",
+      "viewUstawieniaFirmy",
+      "viewUstawieniaProfilu",
+    ]);
   }
 
-  if (!(await can("canManageDrivers"))) {
-    document.getElementById("menuDodajKierowce").style.display = "none";
-  }
-
-  if (!(await can("canManageDocuments"))) {
-    document.getElementById("menuDodajDokument").style.display = "none";
-  }
   if (role === "Przeglądający") {
-    document
-      .querySelectorAll(".acceptButton")
-      .forEach((btn) => (btn.style.display = "none"));
-
-    document
-      .querySelectorAll(".deleteButton")
-      .forEach((btn) => (btn.style.display = "none"));
-
-    document
-      .querySelectorAll(".editButton")
-      .forEach((btn) => (btn.style.display = "none"));
-
-    const menuUzytkownicy = document.getElementById("menuUżytkownicy");
-    if (menuUzytkownicy) menuUzytkownicy.style.display = "none";
+    showMenu([
+      "viewDashboard",
+      "viewPojazdy",
+      "viewKierowcy",
+      "viewDokumenty",
+      "viewUstawieniaProfilu",
+    ]);
   }
+
+  if (role === "Kierowca") {
+    showMenu([
+      "viewDashboard",
+      "viewMojePojazdy",
+      "viewMojeDokumenty",
+      "viewUstawieniaProfilu",
+    ]);
+  }
+}
+
+function showMenu(ids) {
+  ids.forEach((id) => {
+    const btn = document.querySelector(`[data-view="${id}"]`);
+    if (btn) btn.style.display = "flex";
+  });
 }
 
 async function createFirmaFromForm() {
@@ -545,7 +573,6 @@ async function loadPojazdyList() {
     container.innerHTML = `
       <div class="brakPojazdow">
         <p>Nie masz jeszcze żadnych pojazdów.</p>
-        <button data-view="viewDodajPojazd" data-title="Dodaj pojazd">Dodaj pojazd</button>
       </div>
     `;
     return;
@@ -681,7 +708,6 @@ async function loadKierowcyList() {
     container.innerHTML = `
       <div class="brakPojazdow">
         <p>Nie masz jeszcze żadnych kierowców.</p>
-        <button data-view="viewDodajKierowce" data-title="Dodaj kierowcę">Dodaj kierowcę</button>
       </div>
     `;
     return;
@@ -858,9 +884,9 @@ async function renderDokumenty(lista) {
       <div>${d.typ_dokumentu}</div>
       <div>${d.typ_wlasciciela}: ${przypisanieNazwa}</div>
       <div>${d.data_waznosci}</div>
-      <div class="status"> <p style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</p></div>
+      <div class="status"> <div class="status-text" style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</div></div>
       <div>
-        <button><i class="fa-regular fa-eye"></i>Szczegóły</button>
+        <button data-view="viewSzczegolyDokumentu" data-id="${d.id}" data-title="Szczegóły dokumentu"><i class="fa-regular fa-eye"></i>Szczegóły</button>
       </div>
     `;
 
@@ -1191,14 +1217,12 @@ async function renderNadchodzaceTerminy() {
   }
 
   for (const d of lista) {
-    // Jeśli request ID się zmienił, to znaczy że user wyszedł z tego widoku - przerwij renderowanie
     if (requestId !== currentRenderRequestId) {
       return;
     }
 
     const tile = await buildTile(d);
 
-    // Ponownie sprawdzić ID przed dodaniem do DOM
     if (requestId !== currentRenderRequestId) {
       return;
     }
@@ -1480,7 +1504,7 @@ function cancelZmianyUser() {
   showView("viewDashboard", "Pulpit");
 }
 
-async function acceptZmianyUser() {
+async function acceptZmianyHasla() {
   const obecneHaslo = document.getElementById("userHaslo").value.trim();
   const noweHaslo = document.getElementById("userNoweHaslo").value.trim();
   const noweHasloPowtorz = document
@@ -1526,9 +1550,5 @@ async function acceptZmianyUser() {
   }
 
   alert("Hasło zostało zmienione.");
-  showView("viewDashboard", "Pulpit");
-}
-
-function cancelZmianyUser() {
   showView("viewDashboard", "Pulpit");
 }

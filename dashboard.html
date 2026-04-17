@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FleetManager</title>
     <style>
-      .inView { display: none !important; }
+      .inView { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js" defer></script>
@@ -57,7 +57,7 @@
         <li
           class="viewButton"
           data-view="viewUżytkownicy"
-          data-title="Uzytkownicy"
+          data-title="Użytkownicy"
         >
           <i class="fa-solid fa-users-gear"></i>
           <p>Użytkownicy</p>
@@ -663,7 +663,7 @@
             <div class="createFormButtons">
               <button
                 class="acceptButton acceptZmianyButton"
-                onclick="acceptZmianyUser()"
+                onclick="acceptZmianyHasla()"
               >
                 Zmień hasło
               </button>
@@ -673,10 +673,34 @@
             </div>
         </div>
       </div>
+
+      <!-- <div id="viewSzczegolyPojazdu" class="inView">
+        <div class="main">
+        </div>
+      </div>
+
+      <div id="viewSzczegolyKierowcy" class="inView">
+        <div class="main">
+           
+        </div>
+      </div>
+
+      <div id="viewSzczegolyDokumentu" class="inView">
+        <div class="main">
+           
+        </div>
+      </div>
+
+      <div id="viewSzczegolyUzytkownika" class="inView">
+        <div class="main">
+           
+        </div>
+      </div> -->
+
     </div>
     <div id="globalLoader" class="loader hidden">
-    <div class="spinner"></div>
-    <p>Ładowanie...</p>
+      <div class="spinner"></div>
+      <p>Ładowanie...</p>
     </div>
   </body>
 </html>
