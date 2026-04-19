@@ -84,3 +84,9 @@ async function register() {
   errorBox.innerText =
     "Nie możesz założyć konta. Skontaktuj się z administratorem.";
 }
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    register();
+  }
+});

@@ -78,6 +78,15 @@
           <i class="fa-solid fa-user"></i>
           <p>Ustawienia profilu</p>
         </li>
+        <li class="viewButton" data-view="viewMojePojazdy" data-title="Moje pojazdy">
+          <i class="fa-solid fa-truck"></i>
+          <p>Moje pojazdy</p>
+        </li>
+
+        <li class="viewButton" data-view="viewMojeDokumenty" data-title="Moje dokumenty">
+          <i class="fa-solid fa-file"></i>
+          <p>Moje dokumenty</p>
+        </li>
       </ul>
       <div class="logoutButton">
         <div id="logoutBtn" class="viewButton">
@@ -224,7 +233,7 @@
           <div class="pojazdy">
             <div class="titleButton">
               <h3>Lista pojazdów</h3>
-              <button data-view="viewDodajPojazd" data-title="Dodaj pojazd">
+              <button class="addButton" data-view="viewDodajPojazd" data-title="Dodaj pojazd">
                 Dodaj pojazd
               </button>
             </div>
@@ -233,7 +242,6 @@
               <div>NUMER REJESTRACYJNY</div>
               <div>MARKA I MODEL</div>
               <div>PRZYPISANY KIEROWCA</div>
-              <div>STATUS DOKUMENTÓW</div>
               <div>AKCJE</div>
             </div>
 
@@ -321,7 +329,6 @@
               <div>IMIĘ I NAZWISKO</div>
               <div>TELEFON</div>
               <div>E-MAIL</div>
-              <div>STATUS DOKUMENTÓW</div>
               <div>AKCJE</div>
             </div>
 
@@ -493,7 +500,7 @@
             <div class="table table-header">
               <div>E-MAIL</div>
               <div>ROLA</div>
-              <div>PRZYPISANY KIEROWCA</div>
+              <div>STATUS</div>
               <div>AKCJE</div>
             </div>
 

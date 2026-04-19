@@ -290,6 +290,9 @@ async function applyRoleRestrictions() {
       "viewUstawieniaFirmy",
       "viewUstawieniaProfilu",
     ]);
+    document.querySelectorAll(".addButton").forEach((btn) => {
+      btn.style.display = "none";
+    });
   }
 
   if (role === "Administrator") {
@@ -585,12 +588,11 @@ async function loadPojazdyList() {
     row.classList.add("table", "table-row");
 
     row.innerHTML = `
-      <div>${p.typ}</div>
-      <div>${p.numer_rejestracyjny}</div>
-      <div>${p.marka} ${p.model}</div>
-      <div>${kierowca}</div>
-      <div class="status green">Ważny</div>
-      <div>
+      <div class="div1">${p.typ}</div>
+      <div class="div2">${p.numer_rejestracyjny}</div>
+      <div class="div3">${p.marka} ${p.model}</div>
+      <div class="div4">${kierowca}</div>
+      <div class="div5">
         <button data-view="viewSzczegolyPojazdu" data-id="${p.id}" data-title="Szczegóły pojazdu">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
@@ -718,11 +720,10 @@ async function loadKierowcyList() {
     row.classList.add("table", "table-row");
 
     row.innerHTML = `
-      <div>${k.imie_nazwisko}</div>
-      <div>${k.telefon || "-"}</div>
-      <div>${k.email || "-"}</div>
-      <div class="status green">Ważny</div>
-      <div>
+      <div class="kierowcaDiv1">${k.imie_nazwisko}</div>
+      <div class="kierowcaDiv2">${k.telefon || "-"}</div>
+      <div class="kierowcaDiv3">${k.email || "-"}</div>
+      <div class="kierowcaDiv4">
         <button data-view="viewSzczegolyKierowcy" data-id="${k.id}" data-title="Szczegóły kierowcy">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
@@ -881,11 +882,11 @@ async function renderDokumenty(lista) {
     }
 
     row.innerHTML = `
-      <div>${d.typ_dokumentu}</div>
-      <div>${d.typ_wlasciciela}: ${przypisanieNazwa}</div>
-      <div>${d.data_waznosci}</div>
-      <div class="status"> <div class="status-text" style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</div></div>
-      <div>
+      <div class="dokumentDiv1">${d.typ_dokumentu}</div>
+      <div class="dokumentDiv2">${d.typ_wlasciciela}: ${przypisanieNazwa}</div>
+      <div class="dokumentDiv3">${d.data_waznosci}</div>
+      <div class="dokumentDiv4" class="status"> <div class="status-text" style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</div></div>
+      <div class="dokumentDiv5">
         <button data-view="viewSzczegolyDokumentu" data-id="${d.id}" data-title="Szczegóły dokumentu"><i class="fa-regular fa-eye"></i>Szczegóły</button>
       </div>
     `;
@@ -1333,10 +1334,10 @@ function renderUzytkownicy(lista) {
     row.classList.add("table", "table-row");
 
     row.innerHTML = `
-      <div>${u.email}</div>
-      <div>${u.rola}</div>
-      <div>${u.status}</div>
-      <div>
+      <div class="uzytkownicyDiv1">${u.email}</div>
+      <div class="uzytkownicyDiv2"> <div class="${u.rola}"> ${u.rola} </div> </div>
+      <div class="uzytkownicyDiv3">${u.status}</div>
+      <div class="uzytkownicyDiv4">
         <button data-view="viewSzczegolyUzytkownika" data-id="${u.id}" data-title="Szczegóły użytkownika">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
