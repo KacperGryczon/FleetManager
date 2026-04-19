@@ -15,3 +15,15 @@ WAŻNE trzeba zrobić w tych wszystkich tabelach kolorki do statusu dokumentów
 i trzeba zrobić żeby w dashbaordzie już wyświetlały się te dokumenty wszystkie
 
 jutro trzeba będzie dodać coś takiego żeby kierowcy widzieli swoje własne dokumenty i swoje pojazdy, czyli ViewMojePojazdy i ViewMojeDokumenty, ponadto trzeba też ogarnąć żeby chowały się te przyciski w menu w zależności od roli użytkownika
+
+
+Co dokończyć:
+-Szczegóły
+-Co widzą użytkownicy z poszczególnymi rolami, żeby nie widzieli przyciusków w menu
+-Jak rejestruje się nowy użytkownik to firma się automatycznie zakład, kopilot mówi że trzeba wszysto wywalić i wted powinno banglać bo jakiś rekord niby zalega
+-Coś graficznie zrobić ewentualnie
+-Jak coś się dodaj to żeby na górze na zielonkawym tle się wyświetlało potwierdzenie a nie jako alert nawet jest już div#alert w htmlu
+
+A co dzisiaj zrobione 19.04:
+-Żeby na moblice jakoś w miarę się wyświetlały te rowy z danymi pojazdy, kierowcy itd. 
+-I tyle? XDDD trochę nad tym siedziałem z 3 godziny :P well... shit ale jutro będę ogarniał powoli albo trzeba szybko bo i jakąś prezentację trzeba ogarnąć, powerpoint bez sensu, obs się psuje na tym kompie może na biurowym ewentualnie

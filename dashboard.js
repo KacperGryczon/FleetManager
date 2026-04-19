@@ -520,6 +520,14 @@ async function dodajPojazdFromForm() {
 
   alert("Pojazd został dodany.");
   showView("viewPojazdy", "Pojazdy");
+
+  document.getElementById("selectTypPojazdu").value = "";
+  document.getElementById("pojazdNumerRejestracyjny").value = "";
+  document.getElementById("pojazdMarka").value = "";
+  document.getElementById("pojazdModel").value = "";
+  document.getElementById("pojazdRokProdukcji").value = "";
+  document.getElementById("pojazdNumerVIN").value = "";
+  document.getElementById("PojazdPrzypisanyKierowca").value = "";
 }
 
 async function loadPojazdyList() {
@@ -854,7 +862,12 @@ async function renderDokumenty(lista) {
     }
 
     if (d.typ_wlasciciela === "Firma") {
-      przypisanieNazwa = "Firma";
+      const { data: firma } = await client
+        .from("FIRMA")
+        .select("nazwa")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = firma?.nazwa || "Firma";
     }
 
     const borderKolor =

@@ -572,6 +572,10 @@ select {
   font-size: 1rem;
 }
 
+.nadchodzaceTerminy .tiles .tile .info .infoBold::first-letter {
+  text-transform: capitalize;
+}
+
 .nadchodzaceTerminy .tiles .tile .terminWygasniecia {
   background-color: rgba(251, 180, 49, 0.244);
   border: 1px solid rgba(251, 180, 49, 0.463);
@@ -690,7 +694,7 @@ select {
   border-bottom: 1px solid #eee;
 }
 
-.table-row div.Właściciel{
+.table-row div.Właściciel {
   background-color: #e6f0ff;
   color: #0057d9;
   padding: 6px 14px;
@@ -701,7 +705,7 @@ select {
   white-space: nowrap;
 }
 
-.table-row div.Kierowca{
+.table-row div.Kierowca {
   background-color: #fef0dc;
   color: #d94800;
   padding: 6px 14px;
@@ -711,7 +715,7 @@ select {
   display: inline-block;
   white-space: nowrap;
 }
-.table-row div.Administrator{
+.table-row div.Administrator {
   background-color: #e6fff0;
   color: #00d970;
   padding: 6px 14px;
@@ -721,7 +725,7 @@ select {
   display: inline-block;
   white-space: nowrap;
 }
-.table-row div.Przeglądający{
+.table-row div.Przeglądający {
   background-color: #f4e6ff;
   color: #8200d9;
   padding: 6px 14px;
@@ -732,9 +736,9 @@ select {
   white-space: nowrap;
 }
 
-.dokumentDiv1::first-letter{
-    text-transform: capitalize;
-  }
+.dokumentDiv1::first-letter {
+  text-transform: capitalize;
+}
 
 .table-row div,
 .table-header div {
@@ -742,7 +746,7 @@ select {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
- 
+
 .table button {
   border-radius: 16px;
   padding: 8px 12px;
@@ -751,7 +755,7 @@ select {
   cursor: pointer;
 }
 
-.table button i{
+.table button i {
   padding-right: 8px;
 }
 
@@ -996,7 +1000,7 @@ select {
 
 @media only screen and (width <= 1000px) {
   .pojazdy .table-header {
-    display: none; !important
+    display: none;
   }
 
   .pojazdy #użytkownicyRows .table,
@@ -1007,7 +1011,7 @@ select {
     gap: 24px;
   }
 
-  .uzytkownicyDiv2{
+  .uzytkownicyDiv2 {
     grid-column-start: 2;
     grid-row-start: 1;
     display: flex;
@@ -1015,7 +1019,7 @@ select {
     width: 100%;
   }
 
-  .uzytkownicyDiv4{
+  .uzytkownicyDiv4 {
     display: flex;
     justify-content: end;
   }
@@ -1027,7 +1031,7 @@ select {
     grid-template-rows: repeat(4, 1fr);
     gap: 0;
   }
-  .div1{
+  .div1 {
     font-weight: bold;
     font-size: 1.2rem;
   }
@@ -1036,59 +1040,59 @@ select {
     grid-row-start: 2;
     color: #717182;
     padding: 0;
-}
+  }
 
-.div3 {
+  .div3 {
     grid-column-start: 1;
     grid-row-start: 3;
     color: #717182;
-}
+  }
 
-.div4 {
+  .div4 {
     grid-column-start: 1;
     grid-row-start: 4;
     margin-top: 16px;
-}
+  }
 
-.div5 {
+  .div5 {
     grid-column-start: 2;
     grid-row-start: 1;
     display: flex;
     justify-content: end;
-}
+  }
 
-.pojazdy #kierowcyRows .table,
-  .table-row{
+  .pojazdy #kierowcyRows .table,
+  .table-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(3, 1fr);
     gap: 0;
   }
-.kierowcaDiv1{
-  font-weight: bold;
+  .kierowcaDiv1 {
+    font-weight: bold;
     font-size: 1.2rem;
-}  
-.kierowcaDiv2 {
+  }
+  .kierowcaDiv2 {
     grid-column-start: 1;
     grid-row-start: 2;
-}
+  }
 
-.kierowcaDiv3 {
+  .kierowcaDiv3 {
     grid-column-start: 1;
     grid-row-start: 3;
-}
+  }
 
-.kierowcaDiv4 {
+  .kierowcaDiv4 {
     grid-column-start: 4;
     grid-row-start: 1;
-}
+  }
 
-.table-row div:nth-child(2) {
-  justify-self: start;
-}
+  .table-row div:nth-child(2) {
+    justify-self: start;
+  }
 
-.pojazdy #dokumentyRows .table,
-  .table-row{
+  .pojazdy #dokumentyRows .table,
+  .table-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -1104,23 +1108,23 @@ select {
   }
 
   .dokumentDiv3 {
-      grid-column-start: 1;
-      grid-row-start: 3;
+    grid-column-start: 1;
+    grid-row-start: 3;
   }
 
   .dokumentDiv4 {
-      grid-column-start: 4;
-      grid-row-start: 1;
-      display: flex;
-      justify-content: center;
+    grid-column-start: 4;
+    grid-row-start: 1;
+    display: flex;
+    justify-content: center;
   }
 
   .dokumentDiv5 {
-      grid-column-start: 4;
-      grid-row-start: 3;
-      display: flex;
-      justify-content: center;
-}
+    grid-column-start: 4;
+    grid-row-start: 3;
+    display: flex;
+    justify-content: center;
+  }
 }
 
 @media only screen and (width <= 900px) {
