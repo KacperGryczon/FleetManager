@@ -35,27 +35,27 @@
       <ul class="viewsMenu">
         <li
           onclick="goToDashboard()"
-          class="viewButton always-visible active"
+          class="viewButton menuButton always-visible active"
           data-view="viewDashboard"
           data-title="Pulpit"
         >
           <i class="fa-solid fa-bars-staggered"></i>
           <p>Pulpit</p>
         </li>
-        <li class="viewButton" data-view="viewPojazdy" data-title="Pojazdy">
+        <li class="viewButton menuButton" data-view="viewPojazdy" data-title="Pojazdy">
           <i class="fa-solid fa-truck"></i>
           <p>Pojazdy</p>
         </li>
-        <li class="viewButton" data-view="viewKierowcy" data-title="Kierowcy">
+        <li class="viewButton menuButton" data-view="viewKierowcy" data-title="Kierowcy">
           <i class="fa-solid fa-users"></i>
           <p>Kierowcy</p>
         </li>
-        <li class="viewButton" data-view="viewDokumenty" data-title="Dokumenty">
+        <li class="viewButton menuButton" data-view="viewDokumenty" data-title="Dokumenty">
           <i class="fa-solid fa-file-circle-check"></i>
           <p>Dokumenty</p>
         </li>
         <li
-          class="viewButton"
+          class="viewButton menuButton"
           data-view="viewUżytkownicy"
           data-title="Użytkownicy"
         >
@@ -63,7 +63,7 @@
           <p>Użytkownicy</p>
         </li>
         <li
-          class="viewButton"
+          class="viewButton menuButton"
           data-view="viewUstawieniaFirmy"
           data-title="Ustawienia firmy"
         >
@@ -71,19 +71,19 @@
           <p>Ustawienia firmy</p>
         </li>
         <li
-          class="viewButton always-visible"
+          class="viewButton menuButton always-visible"
           data-view="viewUstawieniaProfilu"
           data-title="Ustawienia profilu"
         >
           <i class="fa-solid fa-user"></i>
           <p>Ustawienia profilu</p>
         </li>
-        <li class="viewButton" data-view="viewMojePojazdy" data-title="Moje pojazdy">
+        <li class="viewButton menuButton" data-view="viewMojePojazdy" data-title="Moje pojazdy">
           <i class="fa-solid fa-truck"></i>
           <p>Moje pojazdy</p>
         </li>
 
-        <li class="viewButton" data-view="viewMojeDokumenty" data-title="Moje dokumenty">
+        <li class="viewButton menuButton" data-view="viewMojeDokumenty" data-title="Moje dokumenty">
           <i class="fa-solid fa-file"></i>
           <p>Moje dokumenty</p>
         </li>
@@ -233,7 +233,7 @@
           <div class="pojazdy">
             <div class="titleButton">
               <h3>Lista pojazdów</h3>
-              <button class="addButton" data-view="viewDodajPojazd" data-title="Dodaj pojazd">
+              <button data-view="viewDodajPojazd" data-title="Dodaj pojazd">
                 Dodaj pojazd
               </button>
             </div>
@@ -691,20 +691,14 @@
            
         </div>
       </div>
-
-      <!-- <div id="viewSzczegolyDokumentu" class="inView">
-        <div class="main">
-           
-        </div>
-      </div>
-
-      <div id="viewSzczegolyUzytkownika" class="inView">
-        <div class="main">
-           
-        </div>
-      </div> -->
-
     </div>
+    <div id="detailsModal" class="modal">
+      <div class="modal-content">
+          <span class="modal-close">&times;</span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
     <div id="globalLoader" class="loader hidden">
       <div class="spinner"></div>
       <p>Ładowanie...</p>

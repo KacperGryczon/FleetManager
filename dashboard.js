@@ -203,6 +203,19 @@ document.addEventListener("click", async (e) => {
   showView(viewId, title);
 });
 
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-details]");
+  if (!btn) return;
+
+  const id = btn.dataset.id;
+  const type = btn.dataset.details;
+
+  if (type === "pojazd") return showPojazdDetails(id);
+  if (type === "kierowca") return showKierowcaDetails(id);
+  if (type === "dokument") return showDokumentDetails(id);
+  if (type === "uzytkownik") return showUzytkownikDetails(id);
+});
+
 async function ensureUserHasRole() {
   const {
     data: { user },
@@ -295,7 +308,7 @@ async function can(action) {
 async function applyRoleRestrictions() {
   const role = await getUserRole();
 
-  document.querySelectorAll("[data-view]").forEach((btn) => {
+  document.querySelectorAll(".viewButton").forEach((btn) => {
     btn.style.display = "none";
   });
 
@@ -347,7 +360,7 @@ async function applyRoleRestrictions() {
 
 function showMenu(ids) {
   ids.forEach((id) => {
-    const btn = document.querySelector(`[data-view="${id}"]`);
+    const btn = document.querySelector(`.viewButton[data-view="${id}"]`);
     if (btn) btn.style.display = "flex";
   });
 }
@@ -615,7 +628,7 @@ async function loadPojazdyList() {
       <div class="div3">${p.marka} ${p.model}</div>
       <div class="div4">${kierowca}</div>
       <div class="div5">
-        <button data-view="viewSzczegolyPojazdu" data-id="${p.id}" data-title="Szczegóły pojazdu">
+        <button data-details="pojazd" data-id="${p.id}">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
       </div>
@@ -746,7 +759,7 @@ async function loadKierowcyList() {
       <div class="kierowcaDiv2">${k.telefon || "-"}</div>
       <div class="kierowcaDiv3">${k.email || "-"}</div>
       <div class="kierowcaDiv4">
-        <button data-view="viewSzczegolyKierowcy" data-id="${k.id}" data-title="Szczegóły kierowcy">
+        <button data-details="kierowca" data-id="${k.id}">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
       </div>
@@ -914,7 +927,7 @@ async function renderDokumenty(lista) {
       <div class="dokumentDiv3">${d.data_waznosci}</div>
       <div class="dokumentDiv4" class="status"> <div class="status-text" style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</div></div>
       <div class="dokumentDiv5">
-        <button data-view="viewSzczegolyDokumentu" data-id="${d.id}" data-title="Szczegóły dokumentu"><i class="fa-regular fa-eye"></i>Szczegóły</button>
+        <button data-details="dokument" data-id="${d.id}"><i class="fa-regular fa-eye"></i>Szczegóły</button>
       </div>
     `;
 
@@ -1367,7 +1380,7 @@ function renderUzytkownicy(lista) {
       <div class="uzytkownicyDiv2"> <div class="${u.rola}"> ${u.rola} </div> </div>
       <div class="uzytkownicyDiv3">${u.status}</div>
       <div class="uzytkownicyDiv4">
-        <button data-view="viewSzczegolyUzytkownika" data-id="${u.id}" data-title="Szczegóły użytkownika">
+        <button data-details="uzytkownik" data-id="${u.id}">
           <i class="fa-regular fa-eye"></i>Szczegóły
         </button>
       </div>
@@ -1583,6 +1596,69 @@ async function acceptZmianyHasla() {
 
   showAlert(true, "Hasło zostało zmienione.");
   showView("viewDashboard", "Pulpit");
+}
+
+function openModal(html) {
+  const modal = document.getElementById("detailsModal");
+  const body = document.getElementById("modalBody");
+
+  body.innerHTML = html;
+  modal.style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("detailsModal").style.display = "none";
+}
+
+document.querySelector(".modal-close").addEventListener("click", closeModal);
+
+window.addEventListener("click", (e) => {
+  if (e.target.id === "detailsModal") closeModal();
+});
+
+async function showPojazdDetails(id) {
+  const { data: p } = await client
+    .from("POJAZD")
+    .select("*, KIEROWCA:przypisany_kierowca_id (imie_nazwisko)")
+    .eq("id", id)
+    .single();
+
+  openModal(`
+    <h2>Pojazd: ${p.marka} ${p.model}</h2>
+    <p><strong>Typ:</strong> ${p.typ}</p>
+    <p><strong>Rejestracja:</strong> ${p.numer_rejestracyjny}</p>
+    <p><strong>VIN:</strong> ${p.vin}</p>
+    <p><strong>Kierowca:</strong> ${p.KIEROWCA?.imie_nazwisko || "Brak"}</p>
+  `);
+}
+
+async function showKierowcaDetails(id) {
+  const { data: k } = await client
+    .from("KIEROWCA")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  openModal(`
+    <h2>Kierowca: ${k.imie_nazwisko}</h2>
+    <p><strong>Telefon:</strong> ${k.telefon || "-"}</p>
+    <p><strong>Email:</strong> ${k.email || "-"}</p>
+  `);
+}
+
+async function showDokumentDetails(id) {
+  const { data: d } = await client
+    .from("DOKUMENT")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  openModal(`
+    <h2>Dokument: ${d.typ_dokumentu}</h2>
+    <p><strong>Ważność:</strong> ${d.data_waznosci}</p>
+    <p><strong>Status:</strong> ${d.status}</p>
+    ${d.plik_url ? `<a href="${d.plik_url}" target="_blank">Pobierz plik</a>` : ""}
+  `);
 }
 
 window.addEventListener("load", initApp);
