@@ -33,6 +33,25 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
+function showAlert(success, message) {
+  const alertBox = document.getElementById("alert");
+
+  if (!alertBox) return;
+
+  alertBox.className = "";
+  alertBox.classList.add(success ? "success" : "error");
+
+  alertBox.innerHTML = `
+    <span>${message}</span>
+  `;
+
+  alertBox.classList.add("show");
+
+  setTimeout(() => {
+    alertBox.classList.remove("show");
+  }, 5000);
+}
+
 function initMenuToggle() {
   const menuButton = document.getElementById("menuBarOpen");
   const menuBar = document.getElementById("menuBar");
@@ -336,7 +355,6 @@ function showMenu(ids) {
 async function createFirmaFromForm() {
   const nazwa = document.getElementById("firmaNazwa").value.trim();
   const email = document.getElementById("firmaAdres").value.trim();
-  const alert = document.getElementById("alert");
 
   document.getElementById("firmaNazwa").addEventListener("input", () => {
     document.getElementById("firmaNazwa").classList.remove("placeholder-red");
@@ -365,7 +383,7 @@ async function createFirmaFromForm() {
   } = await client.auth.getUser();
 
   if (userError || !user) {
-    alert("Brak zalogowanego użytkownika.");
+    showAlert(false, "Brak zalogowanego użytkownika.");
     return;
   }
 
@@ -381,15 +399,11 @@ async function createFirmaFromForm() {
 
   if (error) {
     console.error(error);
-    alert("Nie udało się dodać firmy.");
+    showAlert(false, "Nie udało się dodać firmy.");
     return;
   }
 
   showView("viewDashboard", "Pulpit");
-  alert.style.display = "block";
-  setTimeout(() => {
-    alert.style.display = "none";
-  }, 5000);
 }
 
 async function cancelCreateFirmaFromForm() {
@@ -439,7 +453,7 @@ async function dodajPojazdFromForm() {
   ];
 
   if (!(await can("canManageFleet"))) {
-    return alert("Nie masz uprawnień do dodawania pojazdów");
+    return showAlert(false, "Nie masz uprawnień do dodawania pojazdów");
   }
 
   let hasError = false;
@@ -482,7 +496,7 @@ async function dodajPojazdFromForm() {
   } = await client.auth.getUser();
 
   if (userError || !user) {
-    alert("Brak zalogowanego użytkownika.");
+    showAlert(false, "Brak zalogowanego użytkownika.");
     return;
   }
 
@@ -493,7 +507,7 @@ async function dodajPojazdFromForm() {
     .single();
 
   if (firmaError || !firma) {
-    alert("Nie znaleziono firmy użytkownika.");
+    showAlert(false, "Nie znaleziono firmy użytkownika.");
     return;
   }
 
@@ -514,11 +528,11 @@ async function dodajPojazdFromForm() {
 
   if (error) {
     console.error(error);
-    alert("Nie udało się dodać pojazdu.");
+    showAlert(false, "Nie udało się dodać pojazdu.");
     return;
   }
 
-  alert("Pojazd został dodany.");
+  showAlert(true, "Pojazd został dodany.");
   showView("viewPojazdy", "Pojazdy");
 
   document.getElementById("selectTypPojazdu").value = "";
@@ -620,7 +634,7 @@ async function dodajKierowcęFromForm() {
   ];
 
   if (!(await can("canManageDrivers"))) {
-    return alert("Nie masz uprawnień do dodawania kierowców");
+    return showAlert(false, "Nie masz uprawnień do dodawania kierowców");
   }
 
   let hasError = false;
@@ -654,7 +668,7 @@ async function dodajKierowcęFromForm() {
   } = await client.auth.getUser();
 
   if (userError || !user) {
-    alert("Brak zalogowanego użytkownika.");
+    showAlert(false, "Brak zalogowanego użytkownika.");
     return;
   }
 
@@ -665,7 +679,7 @@ async function dodajKierowcęFromForm() {
     .single();
 
   if (firmaError || !firma) {
-    alert("Nie znaleziono firmy użytkownika.");
+    showAlert(false, "Nie znaleziono firmy użytkownika.");
     return;
   }
 
@@ -682,11 +696,11 @@ async function dodajKierowcęFromForm() {
 
   if (error) {
     console.error(error);
-    alert("Nie udało się dodać kierowcy.");
+    showAlert(false, "Nie udało się dodać kierowcy.");
     return;
   }
 
-  alert("Pojazd został dodany.");
+  showAlert(true, "Pojazd został dodany.");
   showView("viewKierowcy", "Kierowcy");
 }
 
@@ -1079,11 +1093,11 @@ async function dodajDokumentFromForm() {
   const file = document.getElementById("fileInput").files[0];
 
   if (!(await can("canManageDocuments"))) {
-    return alert("Nie masz uprawnień do dodawania dokumentów");
+    return showAlert(false, "Nie masz uprawnień do dodawania dokumentów");
   }
 
-  if (!nazwa) return alert("Podaj nazwę dokumentu");
-  if (!dataWaznosci) return alert("Podaj datę ważności");
+  if (!nazwa) return showAlert(false, "Podaj nazwę dokumentu");
+  if (!dataWaznosci) return showAlert(false, "Podaj datę ważności");
 
   const {
     data: { user },
@@ -1114,7 +1128,7 @@ async function dodajDokumentFromForm() {
 
     if (uploadError) {
       console.error(uploadError);
-      return alert("Błąd podczas przesyłania pliku");
+      return showAlert(false, "Błąd podczas przesyłania pliku");
     }
 
     const { data: urlData } = client.storage
@@ -1138,7 +1152,7 @@ async function dodajDokumentFromForm() {
 
   if (insertError) {
     console.error(insertError);
-    return alert("Błąd podczas zapisywania dokumentu");
+    return showAlert(false, "Błąd podczas zapisywania dokumentu");
   }
 
   await showView("viewDokumenty", "Dokumenty");
@@ -1261,12 +1275,13 @@ async function dodajUżytkownikaFromForm() {
   const rola = document.getElementById("selectTypUżytkownika").value;
   const haslo = document.getElementById("użytkownikHaslo").value.trim();
 
-  if (!email) return alert("Podaj adres e-mail");
-  if (!haslo) return alert("Podaj hasło tymczasowe");
-  if (haslo.length < 6) return alert("Hasło musi mieć co najmniej 6 znaków");
+  if (!email) return showAlert(false, "Podaj adres e-mail");
+  if (!haslo) return showAlert(false, "Podaj hasło tymczasowe");
+  if (haslo.length < 6)
+    return showAlert(false, "Hasło musi mieć co najmniej 6 znaków");
 
   if (!(await can("canManageUsers"))) {
-    return alert("Nie masz uprawnień do dodawania użytkowników");
+    return showAlert(false, "Nie masz uprawnień do dodawania użytkowników");
   }
 
   const {
@@ -1276,7 +1291,7 @@ async function dodajUżytkownikaFromForm() {
 
   if (ownerError || !owner) {
     console.error(ownerError);
-    return alert("Nie udało się pobrać zalogowanego użytkownika");
+    return showAlert(false, "Nie udało się pobrać zalogowanego użytkownika");
   }
 
   const { data: firma, error: firmaError } = await client
@@ -1287,7 +1302,7 @@ async function dodajUżytkownikaFromForm() {
 
   if (firmaError || !firma) {
     console.error(firmaError);
-    return alert("Nie udało się pobrać firmy właściciela");
+    return showAlert(false, "Nie udało się pobrać firmy właściciela");
   }
 
   const { error: insertError } = await client.from("UZYTKOWNIK").insert({
@@ -1299,10 +1314,11 @@ async function dodajUżytkownikaFromForm() {
 
   if (insertError) {
     console.error(insertError);
-    return alert("Błąd podczas dodawania użytkownika");
+    return showAlert(false, "Błąd podczas dodawania użytkownika");
   }
 
-  alert(
+  showAlert(
+    true,
     "Użytkownik dodany do Twojej firmy. Ustal z nim sposób pierwszego logowania / ustawienia hasła.",
   );
 
@@ -1412,7 +1428,7 @@ async function acceptZmianyFirmy() {
     data: { user },
   } = await client.auth.getUser();
 
-  if (!user) return alert("Brak zalogowanego użytkownika.");
+  if (!user) return showAlert(false, "Brak zalogowanego użytkownika.");
 
   const { data: uzytkownik } = await client
     .from("UZYTKOWNIK")
@@ -1422,7 +1438,7 @@ async function acceptZmianyFirmy() {
 
   console.log("firma_id użytkownika:", uzytkownik.firma_id);
 
-  if (!uzytkownik) return alert("Nie znaleziono firmy użytkownika.");
+  if (!uzytkownik) return showAlert(false, "Nie znaleziono firmy użytkownika.");
 
   const { error } = await client
     .from("FIRMA")
@@ -1438,10 +1454,10 @@ async function acceptZmianyFirmy() {
 
   if (error) {
     console.error(error);
-    return alert("Nie udało się zapisać zmian.");
+    return showAlert(false, "Nie udało się zapisać zmian.");
   }
 
-  alert("Zapisano zmiany.");
+  showAlert(true, "Zapisano zmiany.");
   showView("viewDashboard", "Pulpit");
 }
 
@@ -1485,7 +1501,7 @@ async function acceptZmianyUser() {
     data: { user },
   } = await client.auth.getUser();
 
-  if (!user) return alert("Brak zalogowanego użytkownika.");
+  if (!user) return showAlert(false, "Brak zalogowanego użytkownika.");
 
   const { data: uzytkownik } = await client
     .from("UZYTKOWNIK")
@@ -1493,7 +1509,8 @@ async function acceptZmianyUser() {
     .eq("email", user.email)
     .maybeSingle();
 
-  if (!uzytkownik) return alert("Nie znaleziono użytkownika w bazie.");
+  if (!uzytkownik)
+    return showAlert(false, "Nie znaleziono użytkownika w bazie.");
 
   const { error } = await client
     .from("UZYTKOWNIK")
@@ -1507,10 +1524,10 @@ async function acceptZmianyUser() {
 
   if (error) {
     console.error(error);
-    return alert("Nie udało się zapisać zmian.");
+    return showAlert(false, "Nie udało się zapisać zmian.");
   }
 
-  alert("Zapisano zmiany.");
+  showAlert(true, "Zapisano zmiany.");
   showView("viewDashboard", "Pulpit");
 }
 
@@ -1526,14 +1543,15 @@ async function acceptZmianyHasla() {
     .value.trim();
 
   if (noweHaslo !== noweHasloPowtorz) {
-    return alert("Nowe hasła nie są takie same.");
+    return showAlert(false, "Nowe hasła nie są takie same.");
   }
 
   const hasNumber = /\d/.test(noweHaslo);
   const hasSpecial = /[^A-Za-z0-9]/.test(noweHaslo);
 
   if (noweHaslo.length < 10 || !hasNumber || !hasSpecial) {
-    return alert(
+    return showAlert(
+      false,
       "Hasło musi mieć min. 10 znaków, zawierać cyfrę i znak specjalny.",
     );
   }
@@ -1542,7 +1560,7 @@ async function acceptZmianyHasla() {
     data: { user },
   } = await client.auth.getUser();
 
-  if (!user) return alert("Brak zalogowanego użytkownika.");
+  if (!user) return showAlert(false, "Brak zalogowanego użytkownika.");
 
   const { error: loginError } = await client.auth.signInWithPassword({
     email: user.email,
@@ -1551,7 +1569,7 @@ async function acceptZmianyHasla() {
 
   if (loginError) {
     console.error(loginError);
-    return alert("Obecne hasło jest nieprawidłowe.");
+    return showAlert(false, "Obecne hasło jest nieprawidłowe.");
   }
 
   const { error: updateError } = await client.auth.updateUser({
@@ -1560,9 +1578,11 @@ async function acceptZmianyHasla() {
 
   if (updateError) {
     console.error(updateError);
-    return alert("Nie udało się zmienić hasła.");
+    return showAlert(false, "Nie udało się zmienić hasła.");
   }
 
-  alert("Hasło zostało zmienione.");
+  showAlert(true, "Hasło zostało zmienione.");
   showView("viewDashboard", "Pulpit");
 }
+
+window.addEventListener("load", initApp);

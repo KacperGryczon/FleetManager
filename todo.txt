@@ -19,11 +19,15 @@ jutro trzeba będzie dodać coś takiego żeby kierowcy widzieli swoje własne d
 
 Co dokończyć:
 -Szczegóły
--Co widzą użytkownicy z poszczególnymi rolami, żeby nie widzieli przyciusków w menu
+*****-Co widzą użytkownicy z poszczególnymi rolami, żeby nie widzieli przycisków w menu
 -Jak rejestruje się nowy użytkownik to firma się automatycznie zakład, kopilot mówi że trzeba wszysto wywalić i wted powinno banglać bo jakiś rekord niby zalega
--Coś graficznie zrobić ewentualnie
--Jak coś się dodaj to żeby na górze na zielonkawym tle się wyświetlało potwierdzenie a nie jako alert nawet jest już div#alert w htmlu
+?????-Coś graficznie zrobić ewentualnie      KRYSTIAN POTEM OCENI
+*****-Jak coś się dodaj to żeby na górze na zielonkawym tle się wyświetlało potwierdzenie a nie jako alert nawet jest już div#alert w htmlu
 
 A co dzisiaj zrobione 19.04:
 -Żeby na moblice jakoś w miarę się wyświetlały te rowy z danymi pojazdy, kierowcy itd. 
 -I tyle? XDDD trochę nad tym siedziałem z 3 godziny :P well... shit ale jutro będę ogarniał powoli albo trzeba szybko bo i jakąś prezentację trzeba ogarnąć, powerpoint bez sensu, obs się psuje na tym kompie może na biurowym ewentualnie
+
+21.04:
+-Zrobiona funkcja żeby się pokazywały komunikaty
+-I już chowają się te w menu, tylko jeszcze trzeba nad tym popracować na pewno czy to wszystko dokładnie działa
