@@ -1275,4 +1275,7 @@ select {
   .view .topBar {
     padding-inline: 20px;
   }
+  #menuBar .logoutButton #logoutBtn {
+    margin-bottom: 32px;
+  }
 }
