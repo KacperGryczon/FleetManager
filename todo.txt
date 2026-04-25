@@ -31,3 +31,11 @@ A co dzisiaj zrobione 19.04:
 21.04:
 -Zrobiona funkcja żeby się pokazywały komunikaty
 -I już chowają się te w menu, tylko jeszcze trzeba nad tym popracować na pewno czy to wszystko dokładnie działa
+
+22.04:
+-Modal zrobiony, tylko zrobić go jeszcze dla użytkowników i zrobić żeby wyglądał jak człowiek
+
+-Jeszcze trzeba te wszystkie dane pousuwać i zobaczyć jak to bangla
+-Ogarnąć użytkowników co mogą dokładnie ROBIĆ
+-Moje dokumenty i Moje pojazdy zrobić 
+-Poprawić wygląd modala

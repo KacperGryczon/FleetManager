@@ -994,6 +994,13 @@ select {
   float: right;
   font-size: 24px;
   cursor: pointer;
+  border: 1px solid #717182;
+  padding-inline: 6px;
+  border-radius: 8px;
+}
+
+.modal-close:hover {
+  border: 1px solid #313137;
 }
 
 @keyframes fadeIn {
@@ -1013,6 +1020,153 @@ select {
   }
 }
 
+.markaModel {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+.markaModel .status-text {
+  border-radius: 16px;
+  padding: 4px 8px;
+  text-align: center;
+  display: inline-block;
+}
+
+.markaModel .Właściciel {
+  background-color: #e6f0ff;
+  color: #0057d9;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  width: 200px;
+}
+
+.markaModel .Kierowca {
+  background-color: #fef0dc;
+  color: #d94800;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  width: 200px;
+}
+.markaModel .Administrator {
+  background-color: #e6fff0;
+  color: #00d970;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  width: 200px;
+}
+.markaModel .Przeglądający {
+  background-color: #f4e6ff;
+  color: #8200d9;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  width: 200px;
+}
+
+.markaModel .dokumentDiv4 {
+  justify-self: flex-start;
+  width: auto;
+}
+
+.markaModel h2 {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 1.4rem;
+}
+
+.markaModel h2::first-letter {
+  text-transform: capitalize;
+}
+
+.markaModel p {
+  color: #717182;
+}
+
+.pobierzPlik {
+  display: inline-block;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: rgb(215, 215, 215);
+  font-size: 1.2rem;
+  transition: all ease-in 0.1s;
+  cursor: pointer;
+  margin-bottom: 16px;
+  margin-top: 32px;
+  width: 100%;
+  text-decoration: none;
+  text-align: center;
+  color: black;
+}
+
+.pobierzPlik:hover {
+  background-color: rgb(188, 187, 187);
+}
+
+.danePojazdu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.danePojazduTile p {
+  color: #717182;
+  margin-bottom: 8px;
+}
+
+.danePojazduTile h3 {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.przypisanyKierowcaP {
+  color: #717182;
+  margin-bottom: 8px;
+}
+
+.przypisanyKierowca {
+  background-color: rgb(232, 232, 232);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.przypisanyKierowca h3 {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.usunPojazdBtn {
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  background-color: rgb(216, 3, 3);
+  color: white;
+  font-size: 1.2rem;
+  transition: all ease-in 0.1s;
+  cursor: pointer;
+}
+
+.usunPojazdBtn:hover {
+  background-color: rgb(190, 3, 3);
+}
 .loader p {
   font-size: 16px;
   color: #333;

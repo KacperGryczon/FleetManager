@@ -1623,13 +1623,61 @@ async function showPojazdDetails(id) {
     .eq("id", id)
     .single();
 
+  const modal = document.getElementById("detailsModal");
+  modal.dataset.pojazdId = id;
+
   openModal(`
-    <h2>Pojazd: ${p.marka} ${p.model}</h2>
-    <p><strong>Typ:</strong> ${p.typ}</p>
-    <p><strong>Rejestracja:</strong> ${p.numer_rejestracyjny}</p>
-    <p><strong>VIN:</strong> ${p.vin}</p>
-    <p><strong>Kierowca:</strong> ${p.KIEROWCA?.imie_nazwisko || "Brak"}</p>
+    <div class="markaModel">
+      <h2>${p.numer_rejestracyjny}</h2>
+      <p>${p.marka} ${p.model}</p>
+    </div>
+    <div class="danePojazdu">
+      <div class="danePojazduTile">
+        <p>Typ pojazdu</p>
+        <h3>${p.typ}</h3>
+      </div>
+      <div class="danePojazduTile">
+        <p>Rok produkcji</p>
+        <h3>${p.rok_produkcji}</h3>
+      </div>
+      <div class="danePojazduTile">
+        <p>Numer VIN</p>
+        <h3>${p.vin}</h3>
+      </div>
+      <div class="danePojazduTile">
+        <p>Marka i model</p>
+        <h3>${p.marka} ${p.model}</h3>
+      </div>
+    </div>
+    <p class="przypisanyKierowcaP">Przypisany kierowca</p>
+    <div class="przypisanyKierowca">
+      <h3>${p.KIEROWCA?.imie_nazwisko || "Brak"}</h3>
+    </div>
+    <button class="usunPojazdBtn" onClick="usunPojazd()">Usuń pojazd</button>
   `);
+}
+
+async function usunPojazd() {
+  const modal = document.getElementById("detailsModal");
+  const id = modal.dataset.pojazdId;
+
+  if (!id) {
+    showAlert(false, "Nie znaleziono ID pojazdu");
+    return;
+  }
+
+  const { error } = await client.from("POJAZD").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    showAlert(false, "Nie udało się usunąć pojazdu");
+    return;
+  }
+
+  closeModal();
+  showAlert(true, "Pojazd został usunięty");
+
+  loadPojazdyList();
 }
 
 async function showKierowcaDetails(id) {
@@ -1639,11 +1687,47 @@ async function showKierowcaDetails(id) {
     .eq("id", id)
     .single();
 
+  const modal = document.getElementById("detailsModal");
+  modal.dataset.kierowcaId = id;
+
   openModal(`
-    <h2>Kierowca: ${k.imie_nazwisko}</h2>
-    <p><strong>Telefon:</strong> ${k.telefon || "-"}</p>
-    <p><strong>Email:</strong> ${k.email || "-"}</p>
+    <div class="markaModel">
+      <h2>${k.imie_nazwisko}</h2>
+      <p>Kierowca</p>
+    </div>
+    <p class="przypisanyKierowcaP">Adres email</p>
+    <div class="przypisanyKierowca">
+      <h3>${k.email || "Brak"}</h3>
+    </div>
+    <p class="przypisanyKierowcaP">Numer telefonu</p>
+    <div class="przypisanyKierowca">
+      <h3>${k.telefon || "Brak"}</h3>
+    </div>
+    <button class="usunPojazdBtn" onClick="usunKierowce()">Usuń kierowcę</button>
   `);
+}
+
+async function usunKierowce() {
+  const modal = document.getElementById("detailsModal");
+  const id = modal.dataset.kierowcaId;
+
+  if (!id) {
+    showAlert(false, "Nie znaleziono ID kierowcy");
+    return;
+  }
+
+  const { error } = await client.from("KIEROWCA").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    showAlert(false, "Nie udało się usunąć kierowcy");
+    return;
+  }
+
+  closeModal();
+  showAlert(true, "Kierowca został usunięty");
+
+  loadKierowcyList();
 }
 
 async function showDokumentDetails(id) {
@@ -1653,12 +1737,180 @@ async function showDokumentDetails(id) {
     .eq("id", id)
     .single();
 
+  if (!d) {
+    showAlert(false, "Nie znaleziono dokumentu");
+    return;
+  }
+
+  const modal = document.getElementById("detailsModal");
+  modal.dataset.dokumentId = id;
+
+  let przypisanieNazwa = "Brak";
+
+  if (d.typ_wlasciciela === "Pojazd") {
+    const { data: pojazd } = await client
+      .from("POJAZD")
+      .select("numer_rejestracyjny")
+      .eq("id", d.wlasciciel_id)
+      .single();
+
+    przypisanieNazwa = pojazd?.numer_rejestracyjny || "Brak";
+  }
+
+  if (d.typ_wlasciciela === "Kierowca") {
+    const { data: kierowca } = await client
+      .from("KIEROWCA")
+      .select("imie_nazwisko")
+      .eq("id", d.wlasciciel_id)
+      .single();
+
+    przypisanieNazwa = kierowca?.imie_nazwisko || "Brak";
+  }
+
+  if (d.typ_wlasciciela === "Firma") {
+    const { data: firma } = await client
+      .from("FIRMA")
+      .select("nazwa")
+      .eq("id", d.wlasciciel_id)
+      .single();
+
+    przypisanieNazwa = firma?.nazwa || "Brak";
+  }
+
+  const borderKolor =
+    d.status === "ok"
+      ? "rgba(52, 243, 52, 0.53)"
+      : d.status === "wygasa"
+        ? "rgba(243, 163, 52, 0.53)"
+        : "rgba(255, 0, 0, 0.53)";
+
+  const kolor =
+    d.status === "ok"
+      ? "rgba(52, 243, 52, 0.43)"
+      : d.status === "wygasa"
+        ? "rgba(243, 163, 52, 0.43)"
+        : "rgba(255, 0, 0, 0.43)";
+
+  function statusLabel(status) {
+    if (status === "ok") return "Ważny";
+    if (status === "wygasa") return "Wygasa";
+    if (status === "niewazny") return "Nieważny";
+    return status;
+  }
   openModal(`
-    <h2>Dokument: ${d.typ_dokumentu}</h2>
-    <p><strong>Ważność:</strong> ${d.data_waznosci}</p>
-    <p><strong>Status:</strong> ${d.status}</p>
-    ${d.plik_url ? `<a href="${d.plik_url}" target="_blank">Pobierz plik</a>` : ""}
+    <div class="markaModel">
+      <h2>${d.typ_dokumentu}</h2>
+      <div> <div class="status-text" style="background-color:${kolor}; border: 2px solid ${borderKolor}; font-weight:bold">${statusLabel(d.status)}</div></div>
+    </div>
+
+    
+
+    <div class="danePojazdu">
+      <div class="danePojazduTile">
+        <p>Typ dokumentu</p>
+        <h3>${d.typ_wlasciciela}</h3>
+      </div>
+      <div class="danePojazduTile">
+        <p>Data wygaśnięcia</p>
+        <h3>${d.data_waznosci}</h3>
+      </div>
+    </div>
+
+    <p class="przypisanyKierowcaP">Przypisany do</p>
+    <div class="przypisanyKierowca">
+      <h3>${przypisanieNazwa}</h3>
+    </div>
+
+    ${d.plik_url ? `<a class="pobierzPlik" href="${d.plik_url}" target="_blank">Pobierz plik</a>` : ""}
+
+    <button class="usunPojazdBtn" onClick="usunDokument()">Usuń dokument</button>
   `);
+}
+
+async function usunDokument() {
+  const modal = document.getElementById("detailsModal");
+  const id = modal.dataset.dokumentId;
+
+  if (!id) {
+    showAlert(false, "Nie znaleziono ID dokumentu");
+    return;
+  }
+
+  const { error } = await client.from("DOKUMENT").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    showAlert(false, "Nie udało się usunąć dokumentu");
+    return;
+  }
+
+  closeModal();
+  showAlert(true, "Dokument został usunięty");
+
+  loadDokumentyList();
+}
+
+async function showUzytkownikDetails(id) {
+  const { data: u } = await client
+    .from("UZYTKOWNIK")
+    .select("*, FIRMA:firma_id (nazwa)")
+    .eq("id", id)
+    .single();
+
+  if (!u) {
+    showAlert(false, "Nie znaleziono użytkownika");
+    return;
+  }
+
+  const modal = document.getElementById("detailsModal");
+  modal.dataset.uzytkownikId = id;
+
+  openModal(`
+    <div class="markaModel">
+      <h2>${u.email}</h2>
+      <p class="${u.rola}"> ${u.rola}</p>
+    </div>
+
+    <div class="danePojazdu">
+      <div class="danePojazduTile">
+        <p>Rola</p>
+        <h3>${u.rola}</h3>
+      </div>
+      <div class="danePojazduTile">
+        <p>Status</p>
+        <h3>${u.status}</h3>
+      </div>
+    </div>
+
+    <p class="przypisanyKierowcaP">Firma</p>
+    <div class="przypisanyKierowca">
+      <h3>${u.FIRMA?.nazwa || "Brak"}</h3>
+    </div>
+
+    <button class="usunPojazdBtn" onClick="usunUzytkownika()">Usuń użytkownika</button>
+  `);
+}
+
+async function usunUzytkownika() {
+  const modal = document.getElementById("detailsModal");
+  const id = modal.dataset.uzytkownikId;
+
+  if (!id) {
+    showAlert(false, "Nie znaleziono ID użytkownika");
+    return;
+  }
+
+  const { error } = await client.from("UZYTKOWNIK").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    showAlert(false, "Nie udało się usunąć użytkownika");
+    return;
+  }
+
+  closeModal();
+  showAlert(true, "Użytkownik został usunięty");
+  loadUzytkownicyList();
 }
 
 window.addEventListener("load", initApp);
