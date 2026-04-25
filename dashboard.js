@@ -1862,6 +1862,11 @@ async function showUzytkownikDetails(id) {
     return;
   }
 
+  const deleteButton =
+    u.rola === "Właściciel"
+      ? ""
+      : `<button class="usunPojazdBtn" onClick="usunUzytkownika()">Usuń użytkownika</button>`;
+
   const modal = document.getElementById("detailsModal");
   modal.dataset.uzytkownikId = id;
 
@@ -1887,7 +1892,7 @@ async function showUzytkownikDetails(id) {
       <h3>${u.FIRMA?.nazwa || "Brak"}</h3>
     </div>
 
-    <button class="usunPojazdBtn" onClick="usunUzytkownika()">Usuń użytkownika</button>
+    ${deleteButton}
   `);
 }
 
