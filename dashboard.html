@@ -70,14 +70,6 @@
           <i class="fa-solid fa-city"></i>
           <p>Ustawienia firmy</p>
         </li>
-        <li
-          class="viewButton menuButton always-visible"
-          data-view="viewUstawieniaProfilu"
-          data-title="Ustawienia profilu"
-        >
-          <i class="fa-solid fa-user"></i>
-          <p>Ustawienia profilu</p>
-        </li>
         <li class="viewButton menuButton" data-view="viewMojePojazdy" data-title="Moje pojazdy">
           <i class="fa-solid fa-truck"></i>
           <p>Moje pojazdy</p>
@@ -86,6 +78,14 @@
         <li class="viewButton menuButton" data-view="viewMojeDokumenty" data-title="Moje dokumenty">
           <i class="fa-solid fa-file"></i>
           <p>Moje dokumenty</p>
+        </li>
+        <li
+          class="viewButton menuButton always-visible"
+          data-view="viewUstawieniaProfilu"
+          data-title="Ustawienia profilu"
+        >
+          <i class="fa-solid fa-user"></i>
+          <p>Ustawienia profilu</p>
         </li>
       </ul>
       <div class="logoutButton">
@@ -350,7 +350,7 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Imię</p>
-                <input type="text" id="kierowcaImię" placeholder="Jan" />
+                <input type="text" id="kierowcaImie" placeholder="Jan" />
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
@@ -534,14 +534,6 @@
           </div>
           <div class="createPojazdForm createForm">
             <h3>Dane użytkownika</h3>
-            <p>E-mail</p>
-            <input
-              type="email"
-              id="użytkownikMail"
-              placeholder="uzytkownik@fleetmanager.pl"
-            />
-            <p>Tymczasowe hasło</p>
-            <input type="password" id="użytkownikHaslo" placeholder="!@#$%" />
             <p>Rola w systemie</p>
             <select id="selectTypUżytkownika">
               <option value="Przeglądający">Przeglądający</option>
@@ -549,6 +541,24 @@
               <option value="Kierowca">Kierowca</option>
               <option value="Administrator">Administrator</option>
             </select>
+            <p>E-mail</p>
+            <input
+              type="email"
+              id="użytkownikMail"
+              placeholder="uzytkownik@fleetmanager.pl"
+            />
+            <div class="createFormGrid" id="kierowcaDane">
+              <div class="halfScreenInput">
+                <p>Imię</p>
+                <input type="text" id="uzytkownikImię" placeholder="Jan" />
+              </div>
+              <div class="halfScreenInput">
+                <p>Nazwisko</p>
+                <input type="text" id="uzytkownikNazwisko" placeholder="Nowak" />
+              </div>
+            </div>
+            <p>Tymczasowe hasło</p>
+            <input type="password" id="użytkownikHaslo" placeholder="!@#$%" />
             <div class="info">
               <span>Uwaga:</span>Użytkownik powinien zmienić hasło po
               zalogowaniu się na swoje konto.
@@ -681,17 +691,45 @@
         </div>
       </div>
 
-      <div id="viewMojePojazdy" class="inView">
-        <div class="main">
-        </div>
-      </div>
+    </div>
+    <div id="viewMojePojazdy" class="inView">
+      <div class="main">
+        <div class="pojazdy">
+          <div class="titleButton">
+            <h3>Moje pojazdy</h3>
+          </div>
 
-      <div id="viewMojeDokumenty" class="inView">
-        <div class="main">
-           
+          <div class="table table-header">
+            <div>NUMER REJESTRACYJNY</div>
+            <div>MARKA</div>
+            <div>MODEL</div>
+            <div>AKCJE</div>
+          </div>
+
+          <div id="mojePojazdyRows"></div>
         </div>
       </div>
     </div>
+
+    <div id="viewMojeDokumenty" class="inView">
+      <div class="main">
+        <div class="pojazdy">
+          <div class="titleButton">
+            <h3>Moje dokumenty</h3>
+          </div>
+
+          <div class="table table-header">
+            <div>NAZWA</div>
+            <div>WŁAŚCICIEL</div>
+            <div>WYGASA</div>
+            <div>AKCJE</div>
+          </div>
+
+          <div id="mojeDokumentyRows"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="detailsModal" class="modal">
       <div class="modal-content">
           <span class="modal-close">&times;</span>

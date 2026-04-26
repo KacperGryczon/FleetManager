@@ -39,3 +39,18 @@ A co dzisiaj zrobione 19.04:
 -Ogarnąć użytkowników co mogą dokładnie ROBIĆ
 -Moje dokumenty i Moje pojazdy zrobić 
 -Poprawić wygląd modala
+
+25.04:
+-Modal zrobiony graficznie i już działa całkowicie
+
+26.04:
+-Dodana ikonka w modalu
+-Zrobione że jak dodaje się użytkownika - kierowcę to dodaje się kierowca z dobrymi danymi
+-Trzeba sprawdzić czy co się dzieje jak dodaje się kierowcę, to czy dodaje się wtedy użytkownik
+-I stworzone są funkcję do wyświetlania moich pojazdów i moich dokumentów ALE NIE DZIAŁAJĄ
+
+-Trzeba zrobić te moje dokumenty/pojazdy
+-Trzeba zrobić dashboard dla kierowcy
+-STWORZYĆ NOWEGO UŻYTKOWNIKA TOTALNIE NOWEGO ŻEBY ZOBACZYĆ JAK DZIAŁA DODAWANIE FIRMY - a właśnie czy nazwa firmy to cały czas moja firma, ale to chyba było zrobione i trzeba wszystkie dane usunąć i wtedy powinno działać
+-Dobra dzisiaj nie mam już czasu, ale jest taki problem że jak dodajemy nowego kierowcę to od razu tworzy się użytkownik - kierowca, tylko że tam przecież trzeba ustawić jakieś piersze hasło więc trochę bez sensu i trzeba to jakoś zrobić ale już nie mam czasu dzisiaj
+^^^^^^^^^^ TOOOOOOO WAŻNE ^^^^^^^^^^

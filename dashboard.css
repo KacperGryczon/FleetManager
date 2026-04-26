@@ -3,6 +3,7 @@
   padding: 0;
   font-family: Arial, Helvetica, sans-serif;
   box-sizing: border-box;
+  word-break: break-word;
 }
 
 html {
@@ -435,6 +436,10 @@ select {
 
 .createForm .placeholder-red::placeholder {
   color: #ef4444;
+}
+
+#kierowcaDane {
+  display: none;
 }
 
 #alert {
@@ -1118,6 +1123,10 @@ select {
   background-color: rgb(188, 187, 187);
 }
 
+.pobierzPlik i {
+  margin-right: 16px;
+}
+
 .danePojazdu {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1166,6 +1175,10 @@ select {
 
 .usunPojazdBtn:hover {
   background-color: rgb(190, 3, 3);
+}
+
+.usunPojazdBtn i {
+  margin-right: 16px;
 }
 .loader p {
   font-size: 16px;
@@ -1431,6 +1444,9 @@ select {
     padding-inline: 20px;
   }
   #menuBar .logoutButton #logoutBtn {
-    margin-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .szybkieAkcje {
+    margin-bottom: 48px;
   }
 }
