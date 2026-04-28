@@ -700,6 +700,10 @@ select {
   justify-content: space-between;
 }
 
+.pojazdy .titleButton h3 {
+  margin-bottom: 24px;
+}
+
 .pojazdy .titleButton button {
   padding: 12px;
   padding-inline: 24px;

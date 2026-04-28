@@ -146,6 +146,8 @@ async function showView(viewId, title) {
   if (viewId === "viewUżytkownicy") await loadUzytkownicyList();
   if (viewId === "viewUstawieniaFirmy") await loadFirmaSettings();
   if (viewId === "viewUstawieniaProfilu") await loadUserSettings();
+  if (viewId === "viewMojePojazdy") loadMojePojazdyList();
+  if (viewId === "viewMojeDokumenty") loadMojeDokumentyList();
 
   hideLoader();
   setActiveMenu(viewId);
@@ -653,7 +655,6 @@ async function dodajKierowcęFromForm() {
     telefonInput,
   });
 
-  // jeśli któryś input nie istnieje → przerwij i pokaż błąd
   if (!imieInput || !nazwiskoInput || !emailInput || !telefonInput) {
     console.error("❌ Brakuje któregoś inputa w HTML!");
     return showAlert(false, "Błąd formularza — sprawdź ID inputów w HTML");
@@ -698,47 +699,7 @@ async function dodajKierowcęFromForm() {
 
   const firmaId = ownerRecord.firma_id;
 
-  // 3. Sprawdź, czy istnieje użytkownik z tym emailem
-  const { data: userExists, error: userExistsError } = await client
-    .from("UZYTKOWNIK")
-    .select("*")
-    .eq("email", email)
-    .maybeSingle();
-
-  console.log("USER EXISTS:", { userExists, userExistsError });
-
-  if (userExistsError) {
-    console.error(userExistsError);
-    return showAlert(false, "Błąd podczas sprawdzania użytkownika");
-  }
-
-  if (userExists) {
-    if (userExists.rola !== "Kierowca") {
-      return showAlert(
-        false,
-        "Istnieje użytkownik z tym emailem, ale nie jest kierowcą",
-      );
-    }
-  } else {
-    // 4. Jeśli użytkownik nie istnieje → utwórz użytkownika-kierowcę
-    const { error: insertUserError } = await client.from("UZYTKOWNIK").insert({
-      firma_id: firmaId,
-      email,
-      rola: "Kierowca",
-      status: "zaproszony",
-      imie,
-      nazwisko,
-    });
-
-    console.log("INSERT USER RESULT:", { insertUserError });
-
-    if (insertUserError) {
-      console.error(insertUserError);
-      return showAlert(false, "Błąd podczas tworzenia użytkownika-kierowcy");
-    }
-  }
-
-  // 5. Sprawdź, czy kierowca już istnieje
+  // 3. Sprawdź, czy kierowca już istnieje
   const { data: kierowcaExists, error: kierowcaExistsError } = await client
     .from("KIEROWCA")
     .select("id")
@@ -753,7 +714,7 @@ async function dodajKierowcęFromForm() {
   }
 
   if (!kierowcaExists) {
-    // 6. Utwórz kierowcę
+    // 4. Utwórz kierowcę
     const { error: insertKierowcaError } = await client
       .from("KIEROWCA")
       .insert({
@@ -770,7 +731,7 @@ async function dodajKierowcęFromForm() {
       return showAlert(false, "Błąd podczas dodawania kierowcy");
     }
   } else {
-    // 7. Aktualizuj kierowcę
+    // 5. Aktualizuj kierowcę
     const { error: updateKierowcaError } = await client
       .from("KIEROWCA")
       .update({
@@ -789,7 +750,7 @@ async function dodajKierowcęFromForm() {
 
   console.log("=== dodajKierowcęFromForm END ===");
 
-  showAlert(true, "Kierowca został dodany i zsynchronizowany z użytkownikiem");
+  showAlert(true, "Kierowca został dodany / zaktualizowany");
   showView("viewKierowcy", "Kierowcy");
 
   await loadKierowcyList();
@@ -1365,56 +1326,64 @@ async function renderNadchodzaceTerminy() {
 async function dodajUżytkownikaFromForm() {
   const email = document.getElementById("użytkownikMail").value.trim();
   const rola = document.getElementById("selectTypUżytkownika").value;
-  const haslo = document.getElementById("użytkownikHaslo").value.trim();
-  const imie = document.getElementById("uzytkownikImię").value.trim();
-  const nazwisko = document.getElementById("uzytkownikNazwisko").value.trim();
+  const kierowcaId = document.getElementById("selectKierowca").value;
 
   if (!email) return showAlert(false, "Podaj adres e-mail");
-  if (!haslo) return showAlert(false, "Podaj hasło tymczasowe");
-  if (haslo.length < 6)
-    return showAlert(false, "Hasło musi mieć co najmniej 6 znaków");
 
-  if (rola === "Kierowca") {
-    if (!imie || !nazwisko)
-      return showAlert(false, "Podaj imię i nazwisko kierowcy");
-  }
+  // jeśli kierowca → musi być wybrany kierowca z listy
+  if (rola === "Kierowca" && !kierowcaId)
+    return showAlert(false, "Wybierz kierowcę, dla którego tworzysz konto");
 
   if (!(await can("canManageUsers"))) {
     return showAlert(false, "Nie masz uprawnień do dodawania użytkowników");
   }
 
-  // 1. Pobierz zalogowanego użytkownika
+  // 1. Pobierz zalogowanego właściciela
   const {
     data: { user: owner },
-    error: ownerError,
   } = await client.auth.getUser();
 
-  if (ownerError || !owner) {
-    console.error(ownerError);
+  if (!owner)
     return showAlert(false, "Nie udało się pobrać zalogowanego użytkownika");
-  }
 
-  // 2. Pobierz firmę właściciela z tabeli UZYTKOWNIK
+  // 2. Pobierz firmę właściciela
   const { data: ownerRecord } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
     .eq("email", owner.email)
     .maybeSingle();
 
-  if (!ownerRecord || !ownerRecord.firma_id) {
-    return showAlert(false, "Nie znaleziono firmy właściciela");
-  }
+  if (!ownerRecord) return showAlert(false, "Nie znaleziono firmy właściciela");
 
   const firmaId = ownerRecord.firma_id;
 
-  // 3. Dodaj użytkownika
+  let imie = null;
+  let nazwisko = null;
+
+  // 3. Jeśli kierowca → pobierz dane kierowcy
+  if (rola === "Kierowca") {
+    const { data: kierowca } = await client
+      .from("KIEROWCA")
+      .select("imie_nazwisko, email")
+      .eq("id", kierowcaId)
+      .single();
+
+    if (!kierowca) return showAlert(false, "Nie znaleziono wybranego kierowcy");
+
+    const parts = kierowca.imie_nazwisko.split(" ");
+    imie = parts[0];
+    nazwisko = parts.slice(1).join(" ");
+  }
+
+  // 4. Dodaj użytkownika — BEZ hasła tymczasowego
   const { error: insertError } = await client.from("UZYTKOWNIK").insert({
     firma_id: firmaId,
-    email: email,
-    rola: rola,
+    email,
+    rola,
     status: "zaproszony",
-    imie: imie || null,
-    nazwisko: nazwisko || null,
+    imie,
+    nazwisko,
+    kierowca_id: kierowcaId || null,
   });
 
   if (insertError) {
@@ -1422,37 +1391,7 @@ async function dodajUżytkownikaFromForm() {
     return showAlert(false, "Błąd podczas dodawania użytkownika");
   }
 
-  // 4. Jeśli użytkownik jest kierowcą → utwórz/aktualizuj kierowcę
-  if (rola === "Kierowca") {
-    const { data: istnieje } = await client
-      .from("KIEROWCA")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (!istnieje) {
-      // utwórz kierowcę
-      await client.from("KIEROWCA").insert({
-        email,
-        imie_nazwisko: `${imie} ${nazwisko}`,
-        telefon: null,
-        firma_id: firmaId,
-      });
-    } else {
-      // zaktualizuj dane kierowcy
-      await client
-        .from("KIEROWCA")
-        .update({
-          imie_nazwisko: `${imie} ${nazwisko}`,
-        })
-        .eq("email", email);
-    }
-  }
-
-  showAlert(
-    true,
-    "Użytkownik został dodany. Jeśli to kierowca, jego dane zostały zsynchronizowane.",
-  );
+  showAlert(true, "Użytkownik został dodany i powiązany z kierowcą.");
 
   await loadUzytkownicyList();
   cancelCreateUżytkownikaFromForm();
@@ -1984,6 +1923,76 @@ async function usunDokument() {
   loadDokumentyList();
 }
 
+async function loadKierowcyDoSelectaUzytkownika() {
+  const select = document.getElementById("selectKierowca");
+  select.innerHTML = `<option value="">Wybierz kierowcę</option>`;
+
+  const { data: kierowcy, error } = await client
+    .from("KIEROWCA")
+    .select("id, imie_nazwisko, email")
+    .order("imie_nazwisko");
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  kierowcy.forEach((k) => {
+    const opt = document.createElement("option");
+    opt.value = k.id;
+    opt.textContent = `${k.imie_nazwisko} (${k.email})`;
+    select.appendChild(opt);
+  });
+}
+
+document
+  .getElementById("selectKierowca")
+  .addEventListener("change", async function () {
+    const kierowcaId = this.value;
+
+    if (!kierowcaId) {
+      document.getElementById("użytkownikMail").value = "";
+      document.getElementById("uzytkownikImię").value = "";
+      document.getElementById("uzytkownikNazwisko").value = "";
+      return;
+    }
+
+    const { data: kierowca, error } = await client
+      .from("KIEROWCA")
+      .select("imie_nazwisko, email")
+      .eq("id", kierowcaId)
+      .single();
+
+    if (error || !kierowca) {
+      console.error(error);
+      return;
+    }
+
+    const parts = kierowca.imie_nazwisko.split(" ");
+    const imie = parts[0];
+    const nazwisko = parts.slice(1).join(" ");
+
+    document.getElementById("użytkownikMail").value = kierowca.email;
+    document.getElementById("uzytkownikImię").value = imie;
+    document.getElementById("uzytkownikNazwisko").value = nazwisko;
+  });
+
+document
+  .getElementById("selectTypUżytkownika")
+  .addEventListener("change", function () {
+    const rola = this.value;
+    const wrapper = document.getElementById("kierowcaSelectWrapper");
+
+    if (rola === "Kierowca") {
+      wrapper.style.display = "block";
+      loadKierowcyDoSelectaUzytkownika();
+    } else {
+      wrapper.style.display = "none";
+      document.getElementById("selectKierowca").innerHTML =
+        `<option value="">Wybierz kierowcę</option>`;
+    }
+  });
+
 async function showUzytkownikDetails(id) {
   const { data: u } = await client
     .from("UZYTKOWNIK")
@@ -2062,20 +2071,23 @@ async function loadMojePojazdyList() {
 
   console.log("=== loadMojePojazdyList START ===");
 
+  // 1. Pobierz zalogowanego usera
   const {
     data: { user },
     error: authError,
   } = await client.auth.getUser();
-  console.log("auth user:", { user, authError });
+
+  console.log("AUTH:", { user, authError });
 
   if (!user) {
     container.innerHTML = "<p>Nie jesteś zalogowany.</p>";
     return;
   }
 
+  // 2. Pobierz rekord użytkownika (z kierowca_id)
   const { data: uzytkownik, error: uzytkownikError } = await client
     .from("UZYTKOWNIK")
-    .select("rola, email")
+    .select("rola, kierowca_id")
     .eq("email", user.email)
     .maybeSingle();
 
@@ -2091,23 +2103,18 @@ async function loadMojePojazdyList() {
     return;
   }
 
-  const { data: kierowca, error: kierowcaError } = await client
-    .from("KIEROWCA")
-    .select("id, imie_nazwisko, email")
-    .eq("email", uzytkownik.email)
-    .maybeSingle();
-
-  console.log("KIEROWCA:", { kierowca, kierowcaError });
-
-  if (!kierowca) {
-    container.innerHTML = "<p>Nie znaleziono przypisanego kierowcy.</p>";
+  if (!uzytkownik.kierowca_id) {
+    container.innerHTML = "<p>To konto nie jest powiązane z kierowcą.</p>";
     return;
   }
 
+  const kierowcaId = uzytkownik.kierowca_id;
+
+  // 3. Pobierz pojazdy przypisane do kierowcy
   const { data: pojazdy, error: pojazdyError } = await client
     .from("POJAZD")
-    .select("id, numer_rejestracyjny, marka, model, przypisany_kierowca_id")
-    .eq("przypisany_kierowca_id", kierowca.id);
+    .select("id, numer_rejestracyjny, marka, model")
+    .eq("przypisany_kierowca_id", kierowcaId);
 
   console.log("POJAZDY:", { pojazdy, pojazdyError });
 
@@ -2125,6 +2132,7 @@ async function loadMojePojazdyList() {
     return;
   }
 
+  // 4. Render
   container.innerHTML = "";
   pojazdy.forEach((p) => {
     const row = document.createElement("div");
@@ -2155,87 +2163,66 @@ async function loadMojeDokumentyList() {
 
   const {
     data: { user },
-    error: authError,
   } = await client.auth.getUser();
-  console.log("auth user:", { user, authError });
 
   if (!user) {
     container.innerHTML = "<p>Nie jesteś zalogowany.</p>";
     return;
   }
 
-  const { data: uzytkownik, error: uzytkownikError } = await client
+  const { data: uzytkownik } = await client
     .from("UZYTKOWNIK")
-    .select("rola, email")
+    .select("rola, kierowca_id")
     .eq("email", user.email)
     .maybeSingle();
 
-  console.log("UZYTKOWNIK:", { uzytkownik, uzytkownikError });
+  console.log("UZYTKOWNIK:", uzytkownik);
 
-  if (!uzytkownik) {
-    container.innerHTML = "<p>Nie znaleziono rekordu użytkownika.</p>";
-    return;
-  }
-
-  if (uzytkownik.rola !== "Kierowca") {
+  if (!uzytkownik || uzytkownik.rola !== "Kierowca") {
     container.innerHTML = "<p>To konto nie jest kontem kierowcy.</p>";
     return;
   }
 
-  const { data: kierowca, error: kierowcaError } = await client
-    .from("KIEROWCA")
-    .select("id, imie_nazwisko, email")
-    .eq("email", uzytkownik.email)
-    .maybeSingle();
+  const kierowcaId = uzytkownik.kierowca_id;
 
-  console.log("KIEROWCA:", { kierowca, kierowcaError });
-
-  if (!kierowca) {
-    container.innerHTML = "<p>Nie znaleziono przypisanego kierowcy.</p>";
+  if (!kierowcaId) {
+    container.innerHTML = "<p>To konto nie jest powiązane z kierowcą.</p>";
     return;
   }
 
-  const { data: pojazdy, error: pojazdyError } = await client
-    .from("POJAZD")
-    .select("id, numer_rejestracyjny, przypisany_kierowca_id")
-    .eq("przypisany_kierowca_id", kierowca.id);
-
-  console.log("POJAZDY:", { pojazdy, pojazdyError });
-
-  const pojazdyIds = pojazdy?.map((p) => p.id) || [];
-
-  const { data: dokumentyKierowcy, error: dokKierError } = await client
+  // Dokumenty kierowcy
+  const { data: dokumentyKierowcy } = await client
     .from("DOKUMENT")
     .select("*")
     .eq("typ_wlasciciela", "Kierowca")
-    .eq("wlasciciel_id", kierowca.id);
+    .eq("wlasciciel_id", kierowcaId);
 
-  console.log("DOK KIEROWCY:", { dokumentyKierowcy, dokKierError });
+  // Pojazdy kierowcy
+  const { data: pojazdy } = await client
+    .from("POJAZD")
+    .select("id, numer_rejestracyjny")
+    .eq("przypisany_kierowca_id", kierowcaId);
 
+  const pojazdyIds = pojazdy?.map((p) => p.id) || [];
+
+  // Dokumenty pojazdów
   let dokumentyPojazdow = [];
   if (pojazdyIds.length > 0) {
-    const { data: dokPoj, error: dokPojError } = await client
+    const { data: dokPoj } = await client
       .from("DOKUMENT")
       .select("*")
       .eq("typ_wlasciciela", "Pojazd")
       .in("wlasciciel_id", pojazdyIds);
 
     dokumentyPojazdow = dokPoj || [];
-    console.log("DOK POJAZDÓW:", { dokPoj, dokPojError });
-  } else {
-    console.log("Brak pojazdów → brak dokumentów pojazdów");
   }
 
   const dokumenty = [...(dokumentyKierowcy || []), ...dokumentyPojazdow];
 
-  console.log("WSZYSTKIE DOKUMENTY:", dokumenty);
+  console.log("DOKUMENTY:", dokumenty);
 
-  if (!dokumenty || dokumenty.length === 0) {
-    container.innerHTML = `
-      <div class="brakPojazdow">
-        <p>Nie masz żadnych dokumentów.</p>
-      </div>
-    `;
+  if (dokumenty.length === 0) {
+    container.innerHTML = "<p>Brak dokumentów.</p>";
     return;
   }
 
@@ -2246,10 +2233,10 @@ async function loadMojeDokumentyList() {
 
     let wlascicielLabel = "";
     if (d.typ_wlasciciela === "Kierowca") {
-      wlascicielLabel = kierowca.imie_nazwisko || "Kierowca";
-    } else if (d.typ_wlasciciela === "Pojazd") {
-      const pojazd = pojazdy?.find((p) => p.id === d.wlasciciel_id);
-      wlascicielLabel = pojazd ? pojazd.numer_rejestracyjny : "Pojazd";
+      wlascicielLabel = "Kierowca";
+    } else {
+      const poj = pojazdy.find((p) => p.id === d.wlasciciel_id);
+      wlascicielLabel = poj ? poj.numer_rejestracyjny : "Pojazd";
     }
 
     row.innerHTML = `
