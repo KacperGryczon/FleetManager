@@ -41,32 +41,15 @@ async function register() {
   }
 
   if (isOwnerRegistration) {
-    const userId = signupData.user.id;
-
-    const { data: firma, error: firmaError } = await client
-      .from("FIRMA")
-      .insert({
-        user_id: userId,
-        nazwa: "Moja Firma",
-      })
-      .select()
-      .single();
-
-    if (firmaError) {
-      console.error(firmaError);
-      errorBox.innerText = "Nie udało się utworzyć firmy.";
-      return;
-    }
-
     await client.from("UZYTKOWNIK").insert({
-      firma_id: firma.id,
-      email: email,
+      email,
       rola: "Właściciel",
       status: "aktywny",
     });
 
     errorBox.style.color = "green";
-    errorBox.innerText = "Konto właściciela utworzone.";
+    errorBox.innerText =
+      "Konto właściciela utworzone. Zaloguj się i utwórz firmę.";
     return;
   }
 

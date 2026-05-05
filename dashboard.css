@@ -482,6 +482,19 @@ select {
   border: 2px solid #ff8a8a;
 }
 
+#kierowcaImie,
+#kierowcaNazwisko,
+#dokumentNazwa,
+.kierowcaDiv1,
+.dokumentDiv2,
+.div4,
+#użytkownikImie,
+#użytkownikNazwisko,
+#userImie,
+#userNazwisko {
+  text-transform: capitalize;
+}
+
 .dokumentyTiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(250px, 1fr));

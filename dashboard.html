@@ -189,8 +189,8 @@
             <h3>Nadchodzące terminy</h3>
             <div class="tiles" id="nadchodzaceTiles"></div>
           </div>
-          <h3>Szybkie akcje</h3>
-          <div class="szybkieAkcje">
+          <h3 id="szybkieAkcjeTitle">Szybkie akcje</h3>
+          <div class="szybkieAkcje" id="szybkieAkcje">
             <div
               class="tile"
               data-view="viewDodajPojazd"
@@ -233,7 +233,7 @@
           <div class="pojazdy">
             <div class="titleButton">
               <h3>Lista pojazdów</h3>
-              <button data-view="viewDodajPojazd" data-title="Dodaj pojazd">
+              <button data-view="viewDodajPojazd" class="addButton" data-title="Dodaj pojazd">
                 Dodaj pojazd
               </button>
             </div>
@@ -321,7 +321,7 @@
           <div class="pojazdy">
             <div class="titleButton">
               <h3>Lista kierowców</h3>
-              <button data-view="viewDodajKierowcę" data-title="Dodaj kierowcę">
+              <button data-view="viewDodajKierowcę" class="addButton" data-title="Dodaj kierowcę">
                 Dodaj kierowcę
               </button>
             </div>
@@ -359,9 +359,13 @@
             </div>
             <p>Telefon</p>
             <input
-              type="text"
+              type="tel"
               id="kierowcaTelefon"
-              placeholder="+48 123 456 789"
+              value="+48 "
+              pattern="^\+[0-9]{2}\s[0-9]{9}$"
+              maxlength="15"
+              required
+              autocomplete="off"
             />
             <p>E-mail</p>
             <input
@@ -406,7 +410,7 @@
           <div class="pojazdy">
             <div class="titleButton">
               <h3>Lista dokumentów <span class="dokumentyCount">(1)</span></h3>
-              <button data-view="viewDodajDokument" data-title="Dodaj dokument">
+              <button data-view="viewDodajDokument" class="addButton" data-title="Dodaj dokument">
                 Dodaj dokument
               </button>
             </div>
@@ -493,6 +497,7 @@
               <button
                 data-view="viewDodajUzytkownika"
                 data-title="Dodaj użytkownika"
+                class="addButton"
               >
                 Dodaj użytkownika
               </button>
@@ -547,20 +552,23 @@
                 <option value="">Wybierz kierowcę</option>
               </select>
             </div>
-            <p>E-mail</p>
-            <input
-              type="email"
-              id="użytkownikMail"
-              placeholder="uzytkownik@fleetmanager.pl"
-            />
+            <div id="emailWrapper">
+              <p>Email</p>
+              <input type="email" id="użytkownikMail" readonly placeholder="użytkownik@email.pl" />
+            </div>
+
             <div class="createFormGrid" id="kierowcaDane">
               <div class="halfScreenInput">
-                <p>Imię</p>
-                <input type="text" id="uzytkownikImię" placeholder="Jan" />
+                <div id="imieWrapper" style="display:none;">
+                  <p>Imię</p>
+                  <input type="text" id="użytkownikImie" placeholder="Jan" readonly />
+                </div>
               </div>
               <div class="halfScreenInput">
-                <p>Nazwisko</p>
-                <input type="text" id="uzytkownikNazwisko" placeholder="Nowak" />
+                <div id="nazwiskoWrapper" style="display:none;">
+                  <p>Nazwisko</p>
+                  <input type="text" id="użytkownikNazwisko" placeholder="Nowak" readonly />
+                </div>
               </div>
             </div>
             <p>Tymczasowe hasło</p>
@@ -658,7 +666,15 @@
               </div>
             </div>
             <p>Numer telefonu</p>
-            <input type="text" id="userTelefon" placeholder="+48 123 456 789" />
+            <input
+              type="tel"
+              id="kierowcaTelefon"
+              value="+48 "
+              pattern="^\+[0-9]{2}\s[0-9]{9}$"
+              maxlength="15"
+              required
+              autocomplete="off"
+            />
             <div class="createFormButtons">
               <button
                 class="acceptButton acceptZmianyButton"
@@ -725,9 +741,10 @@
           </div>
 
           <div class="table table-header">
-            <div>NAZWA</div>
+            <div>NAZWA DOKUMENTU</div>
             <div>WŁAŚCICIEL</div>
             <div>WYGASA</div>
+            <div>STATUS</div>
             <div>AKCJE</div>
           </div>
 

@@ -5,18 +5,6 @@ hero, jakieś do czego służy aplikacja, do jakich problemów jesteśmy rozwią
 3 tile proste dodaj firme, dodaj pojazdy, kierowców, i daty dokumnetów coś takiego
 ***GOTOWE*** JAKIŚ DESIGN TRZEBA ZNALEŹĆ NAJPIERW I KOLORKI ŻEBY WSZYSTKO JUŻ ROBIĆ W JAKIMŚ STYLU KONKRETNYM
 
-PRZECZYTAJ -----> !!!!!!!!!!!!!!!!!!!!!!!
-
-***GOTOWE*** jutro trzeba zrobić tak żeby ładnie wyglądał proces dodawania tej firmy, jakieś kolory czerwone jeżeli coś nie bangla, i może po dodaniu jakiś komunikat zielony dobrze by było pierdzielnąć że firma została dodana
-
-trzeba dokończyć dodawanie tych dokumentów i generowanie tabeli
-
-WAŻNE trzeba zrobić w tych wszystkich tabelach kolorki do statusu dokumentów
-i trzeba zrobić żeby w dashbaordzie już wyświetlały się te dokumenty wszystkie
-
-jutro trzeba będzie dodać coś takiego żeby kierowcy widzieli swoje własne dokumenty i swoje pojazdy, czyli ViewMojePojazdy i ViewMojeDokumenty, ponadto trzeba też ogarnąć żeby chowały się te przyciski w menu w zależności od roli użytkownika
-
-
 Co dokończyć:
 -Szczegóły
 *****-Co widzą użytkownicy z poszczególnymi rolami, żeby nie widzieli przycisków w menu
