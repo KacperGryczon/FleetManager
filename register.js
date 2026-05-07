@@ -21,7 +21,7 @@ async function register() {
     return;
   }
 
-  const { data: userRow, error: userRowError } = await client
+  const { data: userRow } = await client
     .from("UZYTKOWNIK")
     .select("*")
     .eq("email", email)
@@ -40,9 +40,26 @@ async function register() {
     return;
   }
 
+  const userFromSignup = signupData?.user;
+  let user = userFromSignup;
+
+  if (!user) {
+    const {
+      data: { user: currentUser },
+    } = await client.auth.getUser();
+    user = currentUser;
+  }
+
+  if (!user) {
+    errorBox.innerText =
+      "Konto utworzone, ale musisz potwierdzić email i zalogować się.";
+    return;
+  }
+
   if (isOwnerRegistration) {
     await client.from("UZYTKOWNIK").insert({
       email,
+      auth_id: user.id,
       rola: "Właściciel",
       status: "aktywny",
     });
@@ -56,7 +73,7 @@ async function register() {
   if (userRow.status === "zaproszony") {
     await client
       .from("UZYTKOWNIK")
-      .update({ status: "aktywny" })
+      .update({ status: "aktywny", auth_id: user.id })
       .eq("email", email);
 
     errorBox.style.color = "green";

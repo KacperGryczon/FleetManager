@@ -1,13 +1,3 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  await checkSession(true); // jeśli zalogowany → dashboard
-});
-
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    login();
-  }
-});
-
 async function login() {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
@@ -23,5 +13,30 @@ async function login() {
     return;
   }
 
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("*")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
+  if (!uzytkownik) {
+    await client.from("UZYTKOWNIK").insert({
+      email: user.email,
+      auth_id: user.id,
+      rola: "Właściciel",
+      status: "aktywny",
+    });
+  }
+
   window.location.href = "dashboard.html";
 }
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    login();
+  }
+});

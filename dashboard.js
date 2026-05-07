@@ -81,6 +81,13 @@ function initMenuToggle() {
     menuBar.classList.remove("open");
     menuOverlay.classList.remove("active");
   });
+
+  document.querySelectorAll("#menuBar .viewButton").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      menuBar.classList.remove("open");
+      menuOverlay.classList.remove("active");
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -106,7 +113,6 @@ async function showView(viewId, title) {
 
   const role = await getUserRole();
 
-  // BLOKADA widoków, których dana rola nie może otworzyć
   const blockedViews = {
     Kierowca: [
       "viewPojazdy",
@@ -118,7 +124,6 @@ async function showView(viewId, title) {
       "viewDodajPojazd",
       "viewDodajKierowce",
       "viewDodajDokument",
-      "viewUżytkownicy",
       "viewUstawieniaFirmy",
     ],
   };
@@ -128,7 +133,6 @@ async function showView(viewId, title) {
     return showView("viewDashboard", "Pulpit");
   }
 
-  // Ukrywanie widoków
   document.querySelectorAll(".inView").forEach((view) => {
     view.classList.remove("visible");
   });
@@ -141,17 +145,14 @@ async function showView(viewId, title) {
 
   viewElement.classList.add("visible");
 
+  viewElement.querySelectorAll("input").forEach((el) => {
+    el.value = "";
+  });
+
   if (title) {
     document.getElementById("viewTitle").innerText = title;
   }
 
-  // ==========================
-  //   ŁADOWANIE DANYCH
-  // ==========================
-
-  // --------------------------
-  // KIEROWCA
-  // --------------------------
   if (role === "Kierowca") {
     if (viewId === "viewDashboard") await loadMojeDokumentyList();
     if (viewId === "viewMojePojazdy") await loadMojePojazdyList();
@@ -166,9 +167,6 @@ async function showView(viewId, title) {
     return;
   }
 
-  // --------------------------
-  // PRZEGLĄDAJĄCY
-  // --------------------------
   if (role === "Przeglądający") {
     if (viewId === "viewDashboard") {
       await loadDokumentyListPublic();
@@ -185,9 +183,6 @@ async function showView(viewId, title) {
     return;
   }
 
-  // --------------------------
-  // ADMIN + WŁAŚCICIEL
-  // --------------------------
   if (viewId === "viewDodajPojazd") await loadKierowcyDoSelecta();
   if (viewId === "viewPojazdy") await loadPojazdyList();
   if (viewId === "viewKierowcy") await loadKierowcyList();
@@ -208,40 +203,18 @@ async function loadKierowcyListPublic() {
   const container = document.getElementById("kierowcyRows");
   container.innerHTML = "";
 
-  // Pobieramy aktualnie zalogowanego użytkownika
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  // Pobieramy firmę właściciela (jedyna firma w systemie)
-  const { data: firma, error: firmaError } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id) // <-- tu jest problem dla przeglądającego
-    .single();
-
-  // Jeśli to przeglądający → musimy pobrać firmę inaczej
-  let firmaId = firma?.id;
-
+  const firmaId = await getCompanyIdForUser();
   if (!firmaId) {
-    // Pobieramy firmę po firma_id z użytkownika (jeśli istnieje)
-    firmaId = user.user_metadata?.firma_id;
-  }
-
-  if (!firmaId) {
-    console.error("Nie udało się ustalić firma_id.");
     showAlert(false, "Brak uprawnień do pobrania kierowców.");
     return;
   }
 
-  // Pobieramy kierowców firmy
   const { data: kierowcy, error } = await client
     .from("KIEROWCA")
     .select("id, imie_nazwisko, telefon, email")
     .eq("firma_id", firmaId);
 
   if (error) {
-    console.error(error);
     showAlert(false, "Brak uprawnień do pobrania kierowców.");
     return;
   }
@@ -294,7 +267,6 @@ async function loadPojazdyListPublic() {
     .order("numer_rejestracyjny", { ascending: true });
 
   if (error) {
-    console.error(error);
     showAlert(false, "Brak uprawnień do pobrania pojazdów.");
     return;
   }
@@ -340,7 +312,6 @@ async function loadDokumentyListPublic() {
     .order("data_waznosci", { ascending: true });
 
   if (error) {
-    console.error(error);
     showAlert(false, "Brak uprawnień do pobrania dokumentów.");
     return;
   }
@@ -481,8 +452,6 @@ async function ensureUserHasRole() {
     rola: "Właściciel",
     status: "aktywny",
   });
-
-  console.log("Dodano właściciela firmy do tabeli UZYTKOWNIK");
 }
 
 async function getUserRole() {
@@ -497,6 +466,29 @@ async function getUserRole() {
     .single();
 
   return u?.rola;
+}
+
+async function getCompanyIdForUser() {
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) return null;
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (firma?.id) return firma.id;
+
+  const { data: uzytkownik } = await client
+    .from("UZYTKOWNIK")
+    .select("firma_id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  return uzytkownik?.firma_id || user.user_metadata?.firma_id || null;
 }
 
 const PERMISSIONS = {
@@ -542,17 +534,14 @@ async function can(action) {
 async function applyRoleRestrictions() {
   const role = await getUserRole();
 
-  // Domyślnie ukrywamy wszystkie przyciski "Dodaj"
   document.querySelectorAll(".addButton").forEach((btn) => {
     btn.style.display = "none";
   });
 
-  // Domyślnie ukrywamy wszystkie widoki
   document.querySelectorAll(".viewButton").forEach((btn) => {
     btn.style.display = "none";
   });
 
-  // WŁAŚCICIEL
   if (role === "Właściciel") {
     showMenu([
       "viewDashboard",
@@ -564,7 +553,6 @@ async function applyRoleRestrictions() {
       "viewUstawieniaProfilu",
     ]);
 
-    // Właściciel widzi wszystkie przyciski "Dodaj"
     document.querySelectorAll(".addButton").forEach((btn) => {
       btn.style.display = "flex";
     });
@@ -572,7 +560,6 @@ async function applyRoleRestrictions() {
     return;
   }
 
-  // ADMINISTRATOR
   if (role === "Administrator") {
     showMenu([
       "viewDashboard",
@@ -583,7 +570,6 @@ async function applyRoleRestrictions() {
       "viewUstawieniaProfilu",
     ]);
 
-    // Administrator widzi wszystkie przyciski "Dodaj"
     document.querySelectorAll(".addButton").forEach((btn) => {
       btn.style.display = "flex";
     });
@@ -591,7 +577,6 @@ async function applyRoleRestrictions() {
     return;
   }
 
-  // PRZEGLĄDAJĄCY
   if (role === "Przeglądający") {
     showMenu([
       "viewDashboard",
@@ -601,12 +586,9 @@ async function applyRoleRestrictions() {
       "viewUżytkownicy",
       "viewUstawieniaProfilu",
     ]);
-
-    // Przeglądający NIE widzi żadnych przycisków "Dodaj"
     return;
   }
 
-  // KIEROWCA
   if (role === "Kierowca") {
     showMenu([
       "viewDashboard",
@@ -614,8 +596,6 @@ async function applyRoleRestrictions() {
       "viewMojeDokumenty",
       "viewUstawieniaProfilu",
     ]);
-
-    // Kierowca NIE widzi żadnych przycisków "Dodaj"
     return;
   }
 }
@@ -673,7 +653,6 @@ async function createFirmaFromForm() {
     .single();
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się dodać firmy.");
     return;
   }
@@ -681,7 +660,6 @@ async function createFirmaFromForm() {
   showView("viewDashboard", "Pulpit");
   location.reload();
   await applyRoleRestrictions();
-  await loadDashboardData();
 }
 
 async function cancelCreateFirmaFromForm() {
@@ -692,23 +670,15 @@ async function loadKierowcyDoSelecta() {
   const select = document.getElementById("PojazdPrzypisanyKierowca");
   select.innerHTML = `<option value="">Brak przypisania</option>`;
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) return;
 
   const { data: kierowcy, error } = await client
     .from("KIEROWCA")
     .select("id, imie_nazwisko")
-    .eq("firma_id", firma.id);
+    .eq("firma_id", firmaId);
 
   if (error) {
-    console.error(error);
     return;
   }
 
@@ -736,22 +706,6 @@ async function dodajPojazdFromForm() {
 
   let hasError = false;
 
-  fields.forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el.value.trim()) {
-      el.classList.add("placeholder-red");
-      hasError = true;
-
-      el.addEventListener(
-        "input",
-        () => {
-          el.classList.remove("placeholder-red");
-        },
-        { once: true },
-      );
-    }
-  });
-
   if (hasError) return;
 
   const typ = document.getElementById("selectTypPojazdu").value.trim();
@@ -778,13 +732,8 @@ async function dodajPojazdFromForm() {
     return;
   }
 
-  const { data: firma, error: firmaError } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (firmaError || !firma) {
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) {
     showAlert(false, "Nie znaleziono firmy użytkownika.");
     return;
   }
@@ -792,7 +741,7 @@ async function dodajPojazdFromForm() {
   const { data, error } = await client
     .from("POJAZD")
     .insert({
-      firma_id: firma.id,
+      firma_id: firmaId,
       numer_rejestracyjny,
       vin,
       marka,
@@ -805,7 +754,6 @@ async function dodajPojazdFromForm() {
     .single();
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się dodać pojazdu.");
     return;
   }
@@ -842,15 +790,8 @@ async function loadPojazdyList() {
   const container = document.getElementById("pojazdyRows");
   container.innerHTML = "";
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) return;
 
   const { data: pojazdy, error } = await client
     .from("POJAZD")
@@ -865,10 +806,9 @@ async function loadPojazdyList() {
       KIEROWCA:przypisany_kierowca_id (imie_nazwisko)
     `,
     )
-    .eq("firma_id", firma.id);
+    .eq("firma_id", firmaId);
 
   if (error) {
-    console.error(error);
     return;
   }
 
@@ -904,22 +844,12 @@ async function loadPojazdyList() {
 }
 
 async function dodajKierowcęFromForm() {
-  console.log("=== dodajKierowcęFromForm START ===");
-
   const imieInput = document.getElementById("kierowcaImie");
   const nazwiskoInput = document.getElementById("kierowcaNazwisko");
   const emailInput = document.getElementById("kierowcaMail");
   const telefonInput = document.getElementById("kierowcaTelefon");
 
-  console.log("INPUT ELEMENTS:", {
-    imieInput,
-    nazwiskoInput,
-    emailInput,
-    telefonInput,
-  });
-
   if (!imieInput || !nazwiskoInput || !emailInput || !telefonInput) {
-    console.error("❌ Brakuje któregoś inputa w HTML!");
     return showAlert(false, "Błąd formularza — sprawdź ID inputów w HTML");
   }
 
@@ -928,56 +858,41 @@ async function dodajKierowcęFromForm() {
   const email = emailInput.value.trim();
   const telefon = telefonInput.value.trim();
 
-  console.log("FORM VALUES:", { imie, nazwisko, email, telefon });
-
   if (!imie || !nazwisko) return showAlert(false, "Podaj imię i nazwisko");
   if (!email) return showAlert(false, "Podaj adres e-mail");
 
-  // 1. Pobierz zalogowanego użytkownika
   const {
     data: { user },
     error: authError,
   } = await client.auth.getUser();
 
-  console.log("AUTH USER:", { user, authError });
-
   if (authError || !user) {
-    console.error(authError);
     return showAlert(false, "Nie jesteś zalogowany");
   }
 
-  // 2. Pobierz firmę zalogowanego użytkownika
   const { data: ownerRecord, error: ownerError } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
     .eq("email", user.email)
     .maybeSingle();
 
-  console.log("OWNER RECORD:", { ownerRecord, ownerError });
-
   if (ownerError || !ownerRecord) {
-    console.error(ownerError);
     return showAlert(false, "Nie znaleziono firmy");
   }
 
   const firmaId = ownerRecord.firma_id;
 
-  // 3. Sprawdź, czy kierowca już istnieje
   const { data: kierowcaExists, error: kierowcaExistsError } = await client
     .from("KIEROWCA")
     .select("id")
     .eq("email", email)
     .maybeSingle();
 
-  console.log("KIEROWCA EXISTS:", { kierowcaExists, kierowcaExistsError });
-
   if (kierowcaExistsError) {
-    console.error(kierowcaExistsError);
     return showAlert(false, "Błąd podczas sprawdzania kierowcy");
   }
 
   if (!kierowcaExists) {
-    // 4. Utwórz kierowcę
     const { error: insertKierowcaError } = await client
       .from("KIEROWCA")
       .insert({
@@ -987,14 +902,10 @@ async function dodajKierowcęFromForm() {
         firma_id: firmaId,
       });
 
-    console.log("INSERT KIEROWCA RESULT:", { insertKierowcaError });
-
     if (insertKierowcaError) {
-      console.error(insertKierowcaError);
       return showAlert(false, "Błąd podczas dodawania kierowcy");
     }
   } else {
-    // 5. Aktualizuj kierowcę
     const { error: updateKierowcaError } = await client
       .from("KIEROWCA")
       .update({
@@ -1003,15 +914,10 @@ async function dodajKierowcęFromForm() {
       })
       .eq("email", email);
 
-    console.log("UPDATE KIEROWCA RESULT:", { updateKierowcaError });
-
     if (updateKierowcaError) {
-      console.error(updateKierowcaError);
       return showAlert(false, "Błąd podczas aktualizacji kierowcy");
     }
   }
-
-  console.log("=== dodajKierowcęFromForm END ===");
 
   showAlert(true, "Kierowca został dodany / zaktualizowany");
   showView("viewKierowcy", "Kierowcy");
@@ -1023,23 +929,15 @@ async function loadKierowcyList() {
   const container = document.getElementById("kierowcyRows");
   container.innerHTML = "";
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) return;
 
   const { data: kierowcy, error } = await client
     .from("KIEROWCA")
     .select("id, imie_nazwisko, telefon, email")
-    .eq("firma_id", firma.id);
+    .eq("firma_id", firmaId);
 
   if (error) {
-    console.error(error);
     return;
   }
 
@@ -1086,6 +984,8 @@ function setActiveMenu(viewId) {
     viewUstawieniaFirmy: "viewUstawieniaFirmy",
     viewUstawieniaProfilu: "viewUstawieniaProfilu",
     viewDodajKierowcę: "viewKierowcy",
+    viewMojeDokumenty: "viewMojeDokumenty",
+    viewMojePojazdy: "viewMojePojazdy",
   };
 
   const target = map[viewId];
@@ -1132,23 +1032,21 @@ async function loadDokumentyList() {
     return;
   }
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  console.log("loadDokumentyList: firmaId =", firmaId, "role =", role);
+  if (!firmaId) {
+    console.warn("loadDokumentyList: brak firmaId dla roli", role);
+    dokumentyCache = [];
+    updateDashboardTiles();
+    return;
+  }
 
   const { data: dokumenty, error } = await client
     .from("DOKUMENT")
     .select("*")
-    .eq("firma_id", firma.id);
+    .eq("firma_id", firmaId);
 
   if (error) {
-    console.log(error);
     return;
   }
 
@@ -1360,21 +1258,14 @@ document
     wrapper.style.display = "block";
     select.innerHTML = `<option>Ładowanie...</option>`;
 
-    const {
-      data: { user },
-    } = await client.auth.getUser();
-
-    const { data: firma } = await client
-      .from("FIRMA")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+    const firmaId = await getCompanyIdForUser();
+    if (!firmaId) return;
 
     if (typ === "Pojazd") {
       const { data: pojazdy } = await client
         .from("POJAZD")
         .select("id, numer_rejestracyjny")
-        .eq("firma_id", firma.id);
+        .eq("firma_id", firmaId);
 
       select.innerHTML = pojazdy
         .map((p) => `<option value="${p.id}">${p.numer_rejestracyjny}</option>`)
@@ -1388,7 +1279,7 @@ document
       const { data: kierowcy } = await client
         .from("KIEROWCA")
         .select("id, imie_nazwisko")
-        .eq("firma_id", firma.id);
+        .eq("firma_id", firmaId);
 
       select.innerHTML = kierowcy
         .map((k) => `<option value="${k.id}">${k.imie_nazwisko}</option>`)
@@ -1414,20 +1305,15 @@ async function dodajDokumentFromForm() {
   if (!nazwa) return showAlert(false, "Podaj nazwę dokumentu");
   if (!dataWaznosci) return showAlert(false, "Podaj datę ważności");
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) {
+    return showAlert(false, "Nie znaleziono firmy użytkownika.");
+  }
 
   let wlascicielId;
 
   if (typPrzypisania === "Firma") {
-    wlascicielId = firma.id;
+    wlascicielId = firmaId;
   } else {
     wlascicielId = document.getElementById("dokumentWlascicielId").value;
   }
@@ -1435,14 +1321,13 @@ async function dodajDokumentFromForm() {
   let fileUrl = null;
 
   if (file) {
-    const filePath = `firma_${firma.id}/${Date.now()}_${file.name}`;
+    const filePath = `firma_${firmaId}/${Date.now()}_${file.name}`;
 
     const { error: uploadError } = await client.storage
       .from("dokumenty")
       .upload(filePath, file);
 
     if (uploadError) {
-      console.error(uploadError);
       return showAlert(false, "Błąd podczas przesyłania pliku");
     }
 
@@ -1456,7 +1341,7 @@ async function dodajDokumentFromForm() {
   const status = obliczStatusDokumentu(dataWaznosci);
 
   const { error: insertError } = await client.from("DOKUMENT").insert({
-    firma_id: firma.id,
+    firma_id: firmaId,
     typ_wlasciciela: typPrzypisania,
     wlasciciel_id: wlascicielId,
     typ_dokumentu: nazwa,
@@ -1466,7 +1351,6 @@ async function dodajDokumentFromForm() {
   });
 
   if (insertError) {
-    console.error(insertError);
     return showAlert(false, "Błąd podczas zapisywania dokumentu");
   }
   showAlert(true, "Dokument został dodany");
@@ -1545,6 +1429,8 @@ async function buildTile(d) {
 }
 
 async function renderNadchodzaceTerminy() {
+  console.log("renderNadchodzaceTerminy() ODPALONE");
+
   const container = document.getElementById("nadchodzaceTiles");
   container.innerHTML = "";
 
@@ -1558,17 +1444,49 @@ async function renderNadchodzaceTerminy() {
   }
 
   for (const d of lista) {
-    const tile = await buildTile(d);
+    let przypisanieNazwa = "";
 
-    const statusBox = tile.querySelector("#statusBox");
-
-    if (d.status === "nieważny") {
-      tile.classList.add("expired");
-      statusBox.innerHTML = `<p>Nieważny</p>`;
-    } else {
-      tile.classList.add("expireSoon");
-      statusBox.innerHTML = `<p>Wygasa: ${d.data_waznosci}</p>`;
+    if (d.typ_wlasciciela === "Pojazd") {
+      const { data } = await client
+        .from("POJAZD")
+        .select("numer_rejestracyjny")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = data?.numer_rejestracyjny || "—";
     }
+
+    if (d.typ_wlasciciela === "Kierowca") {
+      const { data } = await client
+        .from("KIEROWCA")
+        .select("imie_nazwisko")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = data?.imie_nazwisko || "—";
+    }
+
+    if (d.typ_wlasciciela === "Firma") {
+      const { data } = await client
+        .from("FIRMA")
+        .select("nazwa")
+        .eq("id", d.wlasciciel_id)
+        .single();
+      przypisanieNazwa = data?.nazwa || "Firma";
+    }
+
+    const dataFormatted = new Date(d.data_waznosci).toLocaleDateString("pl-PL");
+    const statusText = d.status === "nieważny" ? "Nieważny" : dataFormatted;
+    const statusClass = d.status === "nieważny" ? "expired" : "expireSoon";
+
+    const tile = document.createElement("div");
+    tile.classList.add("tile", statusClass);
+
+    tile.innerHTML = `
+      <div class="info">
+        <p class="infoBold">${d.typ_dokumentu}</p>
+        <p>${d.typ_wlasciciela}: ${przypisanieNazwa}</p>
+      </div>
+      <div class="terminWygasniecia">${statusText}</div>
+    `;
 
     container.appendChild(tile);
   }
@@ -1647,7 +1565,6 @@ async function dodajUżytkownikaFromForm() {
   const nazwisko = nazwiskoInput.value.trim();
   const password = document.getElementById("użytkownikHaslo").value.trim();
 
-  // Walidacja
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) return showAlert(false, "Podaj poprawny email.");
 
@@ -1662,10 +1579,20 @@ async function dodajUżytkownikaFromForm() {
     );
   }
 
-  // Pobierz firmę właściciela
   const {
     data: { user: owner },
   } = await client.auth.getUser();
+
+  const {
+    data: { session: ownerSession },
+  } = await client.auth.getSession();
+
+  const ownerAccessToken = ownerSession?.access_token;
+  const ownerRefreshToken = ownerSession?.refresh_token;
+  if (!ownerAccessToken || !ownerRefreshToken) {
+    return showAlert(false, "Nie udało się pobrać sesji właściciela.");
+  }
+
   const { data: ownerRecord } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
@@ -1675,31 +1602,28 @@ async function dodajUżytkownikaFromForm() {
   const firmaId = ownerRecord?.firma_id;
   if (!firmaId) return showAlert(false, "Nie znaleziono firmy właściciela.");
 
-  // 🔥 1. Tworzymy użytkownika przez signUp()
-  const { data: newUser, error: signUpError } = await client.auth.signUp({
+  const { data: newUserData, error: signUpError } = await client.auth.signUp({
     email,
     password,
   });
 
   if (signUpError) {
-    console.error(signUpError);
     return showAlert(false, "Nie udało się utworzyć konta.");
   }
 
-  const newUserId = newUser.user.id;
+  const newUserId = newUserData?.user?.id;
+  if (!newUserId) {
+    return showAlert(false, "Nie udało się utworzyć konta użytkownika.");
+  }
 
-  // 🔥 2. Wylogowujemy nowego usera (żeby nie przejął sesji właściciela)
   await client.auth.signOut();
-
-  // 🔥 3. Przywracamy sesję właściciela
   await client.auth.setSession({
-    access_token: owner.access_token,
-    refresh_token: owner.refresh_token,
+    access_token: ownerAccessToken,
+    refresh_token: ownerRefreshToken,
   });
 
-  // 🔥 4. Dodajemy rekord do UZYTKOWNIK
   const { error: insertError } = await client.from("UZYTKOWNIK").insert({
-    id: newUserId,
+    auth_id: newUserId,
     email,
     rola,
     imie,
@@ -1710,7 +1634,6 @@ async function dodajUżytkownikaFromForm() {
   });
 
   if (insertError) {
-    console.error(insertError);
     return showAlert(false, "Nie udało się dodać użytkownika do firmy.");
   }
 
@@ -1737,24 +1660,21 @@ document
 let uzytkownicyCache = [];
 
 async function loadUzytkownicyList() {
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  const { data: firma } = await client
-    .from("FIRMA")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const firmaId = await getCompanyIdForUser();
+  console.log("loadUzytkownicyList: firmaId =", firmaId);
+  if (!firmaId) {
+    console.warn("loadUzytkownicyList: brak firmaId");
+    return;
+  }
 
   const { data, error } = await client
     .from("UZYTKOWNIK")
     .select("*")
-    .eq("firma_id", firma.id)
+    .eq("firma_id", firmaId)
     .order("data_utworzenia", { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error("loadUzytkownicyList error:", error);
     return;
   }
 
@@ -1808,9 +1728,11 @@ async function loadFirmaSettings() {
     .from("FIRMA")
     .select("*")
     .eq("id", uzytkownik.firma_id)
-    .single();
+    .maybeSingle();
 
   if (!firma) return;
+
+  console.log(firma.nazwa);
 
   document.getElementById("firmaDaneNazwa").value = firma.nazwa || "";
   document.getElementById("firmaMail").value = firma.email || "";
@@ -1883,20 +1805,17 @@ async function loadUserSettings() {
     .maybeSingle();
 
   if (error) {
-    console.error(error);
     return;
   }
 
   if (!uzytkownik) return;
 
-  document.getElementById("userMail").value = uzytkownik.email || "";
   document.getElementById("userImie").value = uzytkownik.imie || "";
   document.getElementById("userNazwisko").value = uzytkownik.nazwisko || "";
   document.getElementById("userTelefon").value = uzytkownik.telefon || "";
 }
 
 async function acceptZmianyUser() {
-  const email = document.getElementById("userMail").value.trim();
   const imie = document.getElementById("userImie").value.trim();
   const nazwisko = document.getElementById("userNazwisko").value.trim();
   const telefon = document.getElementById("userTelefon").value.trim();
@@ -1905,21 +1824,33 @@ async function acceptZmianyUser() {
     data: { user },
   } = await client.auth.getUser();
 
-  if (!user) return showAlert(false, "Brak zalogowanego użytkownika.");
+  console.log("AUTH USER:");
+  console.log(user);
+  console.log("AUTH ID:");
+  console.log(user.id);
 
-  const { data: uzytkownik } = await client
+  if (!user) {
+    return showAlert(false, "Brak zalogowanego użytkownika.");
+  }
+
+  const { data: uzytkownik, error: uzytkownikError } = await client
     .from("UZYTKOWNIK")
-    .select("id, kierowca_id, email")
-    .eq("email", user.email)
+    .select("id, kierowca_id")
+    .eq("auth_id", user.id)
     .maybeSingle();
 
-  if (!uzytkownik)
+  if (uzytkownikError) {
+    console.error(uzytkownikError);
+    return showAlert(false, "Błąd pobierania użytkownika.");
+  }
+
+  if (!uzytkownik) {
     return showAlert(false, "Nie znaleziono użytkownika w bazie.");
+  }
 
   const { error: userError } = await client
     .from("UZYTKOWNIK")
     .update({
-      email,
       imie,
       nazwisko,
       telefon,
@@ -1928,48 +1859,29 @@ async function acceptZmianyUser() {
 
   if (userError) {
     console.error(userError);
-    return showAlert(false, "Nie udało się zapisać zmian.");
+    return showAlert(false, "Błąd aktualizacji użytkownika.");
   }
 
-  const pelneImie = `${imie} ${nazwisko}`;
-
-  let kierowcaId = uzytkownik.kierowca_id;
-
-  if (!kierowcaId) {
-    const { data: kierowca } = await client
-      .from("KIEROWCA")
-      .select("id")
-      .eq("email", uzytkownik.email)
-      .maybeSingle();
-
-    if (kierowca) {
-      kierowcaId = kierowca.id;
-
-      await client
-        .from("UZYTKOWNIK")
-        .update({ kierowca_id: kierowcaId })
-        .eq("id", uzytkownik.id);
-    }
-  }
-
-  if (kierowcaId) {
+  if (uzytkownik.kierowca_id) {
     const { error: kierowcaError } = await client
       .from("KIEROWCA")
       .update({
-        imie_nazwisko: pelneImie,
+        imie_nazwisko: `${imie} ${nazwisko}`,
+        telefon,
       })
-      .eq("id", kierowcaId);
+      .eq("id", uzytkownik.kierowca_id);
 
     if (kierowcaError) {
       console.error(kierowcaError);
       return showAlert(
         false,
-        "Zapisano profil, ale nie udało się zaktualizować danych kierowcy.",
+        "Profil zapisano, ale nie udało się zaktualizować kierowcy.",
       );
     }
   }
 
   showAlert(true, "Zapisano zmiany.");
+
   showView("viewDashboard", "Pulpit");
 }
 
@@ -2010,7 +1922,6 @@ async function acceptZmianyHasla() {
   });
 
   if (loginError) {
-    console.error(loginError);
     return showAlert(false, "Obecne hasło jest nieprawidłowe.");
   }
 
@@ -2019,7 +1930,6 @@ async function acceptZmianyHasla() {
   });
 
   if (updateError) {
-    console.error(updateError);
     return showAlert(false, "Nie udało się zmienić hasła.");
   }
 
@@ -2035,7 +1945,10 @@ function openModal(html) {
   modal.style.display = "flex";
 
   setTimeout(() => {
-    if (window.currentUserRole === "Kierowca") {
+    if (
+      window.currentUserRole === "Kierowca" ||
+      window.currentUserRole === "Przeglądający"
+    ) {
       document
         .querySelectorAll(".usunPojazdBtn, .usunDokumentBtn")
         .forEach((el) => {
@@ -2108,7 +2021,6 @@ async function usunPojazd() {
   const { error } = await client.from("POJAZD").delete().eq("id", id);
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się usunąć pojazdu");
     return;
   }
@@ -2158,7 +2070,6 @@ async function usunKierowce() {
   const { error } = await client.from("KIEROWCA").delete().eq("id", id);
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się usunąć kierowcy");
     return;
   }
@@ -2278,7 +2189,6 @@ async function usunDokument() {
   const { error } = await client.from("DOKUMENT").delete().eq("id", id);
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się usunąć dokumentu");
     return;
   }
@@ -2293,12 +2203,15 @@ async function loadKierowcyDoSelectaUzytkownika() {
   const select = document.getElementById("selectKierowca");
   select.innerHTML = `<option value="">Wybierz kierowcę</option>`;
 
+  const firmaId = await getCompanyIdForUser();
+  if (!firmaId) return;
+
   const { data: kierowcy, error: kierowcyError } = await client
     .from("KIEROWCA")
-    .select("id, imie_nazwisko");
+    .select("id, imie_nazwisko")
+    .eq("firma_id", firmaId);
 
   if (kierowcyError) {
-    console.error(kierowcyError);
     return;
   }
 
@@ -2308,7 +2221,6 @@ async function loadKierowcyDoSelectaUzytkownika() {
     .not("kierowca_id", "is", null);
 
   if (userzyError) {
-    console.error(userzyError);
     return;
   }
 
@@ -2343,7 +2255,6 @@ document
       .single();
 
     if (error || !kierowca) {
-      console.error(error);
       return;
     }
 
@@ -2434,7 +2345,6 @@ async function usunUzytkownika() {
   const { error } = await client.from("UZYTKOWNIK").delete().eq("id", id);
 
   if (error) {
-    console.error(error);
     showAlert(false, "Nie udało się usunąć użytkownika");
     return;
   }
@@ -2448,29 +2358,21 @@ async function loadMojePojazdyList() {
   const container = document.getElementById("mojePojazdyRows");
   container.innerHTML = "";
 
-  console.log("=== DIAGNOSTYKA MojePojazdy START ===");
-
-  // 1. Pobierz zalogowanego usera
   const {
     data: { user },
     error: authError,
   } = await client.auth.getUser();
-
-  console.log("AUTH USER:", { user, authError });
 
   if (!user) {
     container.innerHTML = "<p>Nie jesteś zalogowany.</p>";
     return;
   }
 
-  // 2. Pobierz rekord użytkownika
   const { data: uzytkownik, error: uzytkownikError } = await client
     .from("UZYTKOWNIK")
     .select("*")
     .eq("email", user.email)
     .maybeSingle();
-
-  console.log("UZYTKOWNIK RECORD:", { uzytkownik, uzytkownikError });
 
   if (!uzytkownik) {
     container.innerHTML = "<p>Nie znaleziono rekordu użytkownika.</p>";
@@ -2482,59 +2384,39 @@ async function loadMojePojazdyList() {
     return;
   }
 
-  console.log("UZYTKOWNIK.kierowca_id =", uzytkownik.kierowca_id);
-
-  // 3. Pobierz kierowcę po ID
   const { data: kierowca, error: kierowcaError } = await client
     .from("KIEROWCA")
     .select("*")
     .eq("id", uzytkownik.kierowca_id)
     .maybeSingle();
 
-  console.log("KIEROWCA RECORD:", { kierowca, kierowcaError });
-
   if (!kierowca) {
-    console.warn("❌ Kierowca nie istnieje dla tego użytkownika!");
     container.innerHTML =
       "<p>Nie znaleziono kierowcy powiązanego z kontem.</p>";
     return;
   }
 
-  // 4. Pobierz WSZYSTKIE pojazdy (do diagnostyki)
   const { data: allPojazdy, error: allPojazdyError } = await client
     .from("POJAZD")
     .select("id, numer_rejestracyjny, marka, model, przypisany_kierowca_id");
 
-  console.log("WSZYSTKIE POJAZDY W BAZIE:", allPojazdy);
-
-  // 5. Pojazdy przypisane do TEGO kierowcy
   const { data: pojazdy, error: pojazdyError } = await client
     .from("POJAZD")
     .select("*")
     .eq("przypisany_kierowca_id", uzytkownik.kierowca_id);
 
-  console.log("POJAZDY PRZYPISANE DO TEGO KIEROWCY:", pojazdy);
-
-  // 6. Diagnostyka: sprawdź, czy jakieś pojazdy mają przypisany kierowca_id ≠ tego użytkownika
   const pojazdyInnych = allPojazdy.filter(
     (p) =>
       p.przypisany_kierowca_id &&
       p.przypisany_kierowca_id !== uzytkownik.kierowca_id,
   );
 
-  console.log("POJAZDY PRZYPISANE DO INNYCH KIEROWCÓW:", pojazdyInnych);
-
-  // 7. Render
   if (!pojazdy || pojazdy.length === 0) {
     container.innerHTML = `
       <div class="brakPojazdow">
         <p>Nie masz żadnych przypisanych pojazdów.</p>
       </div>
     `;
-    console.warn(
-      "❗ Brak pojazdów przypisanych do kierowcy o ID:",
-      uzytkownik.kierowca_id,
-    );
     return;
   }
 
@@ -2556,8 +2438,6 @@ async function loadMojePojazdyList() {
 
     container.appendChild(row);
   });
-
-  console.log("=== DIAGNOSTYKA MojePojazdy END ===");
 
   document.querySelectorAll(".usunPojazdBtn").forEach((el) => {
     el.style.display = "none";
@@ -2600,14 +2480,12 @@ async function loadMojeDokumentyList() {
 
   const kierowcaId = uzytkownik.kierowca_id;
 
-  // Dokumenty kierowcy
   const { data: dokumentyKierowcy } = await client
     .from("DOKUMENT")
     .select("*")
     .eq("typ_wlasciciela", "Kierowca")
     .eq("wlasciciel_id", kierowcaId);
 
-  // Pojazdy kierowcy
   const { data: pojazdy } = await client
     .from("POJAZD")
     .select("id, numer_rejestracyjny")
@@ -2615,7 +2493,6 @@ async function loadMojeDokumentyList() {
 
   const pojazdyIds = pojazdy?.map((p) => p.id) || [];
 
-  // Dokumenty pojazdów kierowcy
   let dokumentyPojazdow = [];
   if (pojazdyIds.length > 0) {
     const { data: dokPoj } = await client
@@ -2627,7 +2504,6 @@ async function loadMojeDokumentyList() {
     dokumentyPojazdow = dokPoj || [];
   }
 
-  // Połączone dokumenty kierowcy
   mojeDokumentyCache = [...(dokumentyKierowcy || []), ...dokumentyPojazdow];
 
   if (mojeDokumentyCache.length === 0) {
@@ -2718,8 +2594,11 @@ function updateMojeDashboardTiles() {
   const elWygasaja = document.getElementById("wygasajaNumber");
   const elNieWazne = document.getElementById("nieWazneNumber");
 
+  elWazne.textContent = "0";
+  elWygasaja.textContent = "0";
+  elNieWazne.textContent = "0";
+
   if (!elWazne || !elWygasaja || !elNieWazne) {
-    console.warn("Brakuje elementów tilesów w dashboardzie.");
     return;
   }
 
@@ -2732,11 +2611,12 @@ async function renderMojeNadchodzaceTerminy() {
   const requestId = ++currentRenderRequestId;
   const container = document.getElementById("nadchodzaceTiles");
 
+  container.innerHTML = `<p>Brak nadchodzących terminów.</p>`;
+
   if (!container) return;
 
-  container.innerHTML = "";
+  container.innerText = "Brak nadchodzących terminów.";
 
-  // Bierzemy tylko dokumenty, które już mają status "wygasa" albo "niewazny"
   const lista = mojeDokumentyCache.filter(
     (d) => d.status === "wygasa" || d.status === "niewazny",
   );
@@ -2759,7 +2639,6 @@ async function renderMojeNadchodzaceTerminy() {
       tile.classList.add("expired");
       statusBox.innerHTML = `<p>Nieważny</p>`;
     } else {
-      // "wygasa"
       tile.classList.add("expireSoon");
       statusBox.innerHTML = `<p>Wygasa: ${d.data_waznosci}</p>`;
     }
@@ -2768,11 +2647,13 @@ async function renderMojeNadchodzaceTerminy() {
   }
 }
 
-function setupPhoneMask(inputId) {
+function initPhoneMask(inputId) {
   const tel = document.getElementById(inputId);
   if (!tel) return;
 
-  tel.value = "+48 ";
+  if (tel.value.trim() === "") {
+    tel.value = "+48 ";
+  }
 
   tel.addEventListener("input", () => {
     let v = tel.value;
@@ -2795,7 +2676,7 @@ function setupPhoneMask(inputId) {
   });
 }
 
-setupPhoneMask("kierowcaTelefon");
-setupPhoneMask("userTelefon");
+initPhoneMask("kierowcaTelefon");
+initPhoneMask("userTelefon");
 
 window.addEventListener("load", initApp);

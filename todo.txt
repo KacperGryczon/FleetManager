@@ -51,3 +51,7 @@ W dashboard dla kierowcy żeby był taki sam, tylko wyłączyć mu szybkie akcje
 Jeszcze trzeba przetestować to co mogą i czym mogą zarządzać poszczególni użytkownicy 
 STWORZYĆ NOWEGO UŻYTKOWNIKA TOTALNIE NOWEGO ŻEBY ZOBACZYĆ JAK DZIAŁA DODAWANIE FIRMY - a właśnie czy nazwa firmy to cały czas moja firma, ale to chyba było zrobione i trzeba wszystkie dane usunąć i wtedy powinno działać
 To też trzeba przetestować ^^
+
+
+
+TRZEBA USTAWIĆ TAK ŻEBY auth_id W TABELI UŻYTKOWNIK ODPOWIADAŁO ID Z authentication-user I JESZCZE NIE DZIAŁA DALEJ ZMIANA DANYCH DLA KIEROWCY 

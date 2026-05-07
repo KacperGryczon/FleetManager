@@ -430,14 +430,6 @@ select {
   background-color: rgb(20, 73, 232);
 }
 
-.createForm .placeholder-red {
-  border: 1px solid #ef4444;
-}
-
-.createForm .placeholder-red::placeholder {
-  color: #ef4444;
-}
-
 #kierowcaDane {
   display: none;
 }
@@ -488,6 +480,7 @@ select {
 .kierowcaDiv1,
 .dokumentDiv2,
 .div4,
+.przypisanyKierowca,
 #użytkownikImie,
 #użytkownikNazwisko,
 #userImie,
@@ -734,6 +727,10 @@ select {
 }
 
 .brakPojazdow p {
+  margin-top: 16px;
+}
+
+#mojeDokumentyRows {
   margin-top: 16px;
 }
 
