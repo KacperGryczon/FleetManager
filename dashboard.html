@@ -4,12 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>FleetManager</title>
-    <style>
-      .inView { display: none; }
-    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth.js" defer></script>
-    <script src="dashboard.js" defer></script>
+    <script type="module" src="js/main.js" defer></script>
     <script
       src="https://kit.fontawesome.com/1017934682.js"
       crossorigin="anonymous"
@@ -18,7 +14,7 @@
   </head>
 
   <body>
-    <div id="alert">Test czy to będzie dobrze wyglądać</div>
+    <div id="alert"></div>
     <div id="menuBar">
       <div class="icon-box">
         <div class="icon-content">
@@ -273,11 +269,11 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Marka</p>
-                <input type="text" id="pojazdMarka" placeholder="Scania" />
+                <input type="text" id="pojazdMarka" maxlength="30" placeholder="Scania" />
               </div>
               <div class="halfScreenInput">
                 <p>Model</p>
-                <input type="text" id="pojazdModel" placeholder="R450" />
+                <input type="text" id="pojazdModel" maxlength="30" placeholder="R450" />
               </div>
               <div class="halfScreenInput">
                 <p>Rok produkcji</p>
@@ -285,6 +281,7 @@
                   type="number"
                   id="pojazdRokProdukcji"
                   placeholder="2000"
+                  min="1900"
                 />
               </div>
               <div class="halfScreenInput">
@@ -294,6 +291,7 @@
                   id="pojazdNumerVIN"
                   placeholder="YS2R4X20001234567"
                   maxlength="17"
+
                 />
               </div>
             </div>
@@ -351,11 +349,11 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Imię</p>
-                <input type="text" id="kierowcaImie" placeholder="Jan" />
+                <input type="text" id="kierowcaImie" maxlength="30" placeholder="Jan" />
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
-                <input type="text" id="kierowcaNazwisko" placeholder="Nowak" />
+                <input type="text" id="kierowcaNazwisko" maxlength="30" placeholder="Nowak" />
               </div>
             </div>
             <p>Telefon</p>
@@ -372,6 +370,7 @@
             <input
               type="email"
               id="kierowcaMail"
+              maxlength="50"
               placeholder="jan.kowalski@fleetmanager.pl"
             />
             <div class="createFormButtons">
@@ -442,6 +441,7 @@
             <input
               type="text"
               id="dokumentNazwa"
+              maxlength="50"
               placeholder="Ubezpieczenie OC"
             />
             <p>Data ważności</p>
@@ -618,11 +618,11 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>NIP</p>
-                <input type="text" id="firmaNIP" placeholder="1234567890" />
+                <input type="text" id="firmaNIP" maxlength="10" placeholder="1234567890" />
               </div>
               <div class="halfScreenInput">
                 <p>REGON</p>
-                <input type="text" id="firmaREGON" placeholder="123456789" />
+                <input type="text" id="firmaREGON" maxlength="9" placeholder="123456789" />
               </div>
             </div>
             <p>Numer licencji transportowej</p>

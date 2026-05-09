@@ -1,7 +1,15 @@
+import { client } from "./js/api/supabase.js";
+import { showAlert } from "./js/ui/alertService.js";
+
 async function login() {
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  const login_error = document.getElementById("login_error");
+  const emailInput = document.getElementById("loginEmail");
+  const passwordInput = document.getElementById("loginPassword");
+  const loginErrorElement = document.getElementById("login_error");
+
+  if (!emailInput || !passwordInput) return;
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
 
   const { data, error } = await client.auth.signInWithPassword({
     email,
@@ -9,24 +17,24 @@ async function login() {
   });
 
   if (error) {
-    login_error.innerText = "Niepoprawne hasło albo email.";
+    if (loginErrorElement) {
+      loginErrorElement.innerText = "Niepoprawne hasło albo email.";
+    }
     return;
   }
 
-  const {
-    data: { user },
-  } = await client.auth.getUser();
+  const { data: authData } = await client.auth.getUser();
 
-  const { data: uzytkownik } = await client
+  const { data: userRecord } = await client
     .from("UZYTKOWNIK")
     .select("*")
-    .eq("auth_id", user.id)
+    .eq("auth_id", authData.user.id)
     .maybeSingle();
 
-  if (!uzytkownik) {
+  if (!userRecord) {
     await client.from("UZYTKOWNIK").insert({
-      email: user.email,
-      auth_id: user.id,
+      email: authData.user.email,
+      auth_id: authData.user.id,
       rola: "Właściciel",
       status: "aktywny",
     });
@@ -40,3 +48,5 @@ document.addEventListener("keydown", function (e) {
     login();
   }
 });
+
+window.login = login;

@@ -65,6 +65,7 @@ body .darker {
   padding: 10px;
   border-radius: 8px;
   font-size: 1.3rem;
+  color: white;
 }
 
 #menuBar .icon-box h2 {
@@ -156,8 +157,8 @@ body .darker {
 }
 
 .view {
+  flex: 1;
   width: 100%;
-  height: 100%;
   background-color: rgb(244, 244, 244);
   display: flex;
   flex-direction: column;
@@ -167,14 +168,10 @@ body .darker {
 .inView {
   width: 100%;
   flex: 1;
-  display: flex;
+  display: none;
   flex-direction: column;
   overflow-y: auto;
   height: 100%;
-}
-
-.inView:not(.visible) {
-  display: none;
 }
 
 .inView.visible {

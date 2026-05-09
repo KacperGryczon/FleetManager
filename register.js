@@ -1,23 +1,35 @@
+import { client } from "./js/api/supabase.js";
+import { validatePassword } from "./js/utils/validators.js";
+
 async function register() {
-  const email = document.getElementById("registerEmail").value.trim();
-  const password = document.getElementById("registerPassword").value;
-  const confirmed = document.getElementById("confirmed_password").value;
-  const errorBox = document.getElementById("register_error");
+  const emailInput = document.getElementById("registerEmail");
+  const passwordInput = document.getElementById("registerPassword");
+  const confirmPasswordInput = document.getElementById("confirmed_password");
+  const errorBoxElement = document.getElementById("register_error");
 
-  errorBox.style.color = "red";
-  errorBox.innerText = "";
+  if (
+    !emailInput ||
+    !passwordInput ||
+    !confirmPasswordInput ||
+    !errorBoxElement
+  )
+    return;
 
-  const hasNumber = /\d/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const confirmed = confirmPasswordInput.value;
 
-  if (password.length < 10 || !hasNumber || !hasSpecial) {
-    errorBox.innerText =
+  errorBoxElement.style.color = "red";
+  errorBoxElement.innerText = "";
+
+  if (!validatePassword(password)) {
+    errorBoxElement.innerText =
       "Hasło musi mieć min. 10 znaków, cyfrę i znak specjalny.";
     return;
   }
 
   if (password !== confirmed) {
-    errorBox.innerText = "Hasła się nie zgadzają.";
+    errorBoxElement.innerText = "Hasła się nie zgadzają.";
     return;
   }
 
@@ -35,8 +47,7 @@ async function register() {
   });
 
   if (signupError) {
-    console.error(signupError);
-    errorBox.innerText = "Nie udało się utworzyć konta.";
+    errorBoxElement.innerText = "Nie udało się utworzyć konta.";
     return;
   }
 
@@ -44,14 +55,12 @@ async function register() {
   let user = userFromSignup;
 
   if (!user) {
-    const {
-      data: { user: currentUser },
-    } = await client.auth.getUser();
-    user = currentUser;
+    const { data: authData } = await client.auth.getUser();
+    user = authData.user;
   }
 
   if (!user) {
-    errorBox.innerText =
+    errorBoxElement.innerText =
       "Konto utworzone, ale musisz potwierdzić email i zalogować się.";
     return;
   }
@@ -64,9 +73,10 @@ async function register() {
       status: "aktywny",
     });
 
-    errorBox.style.color = "green";
-    errorBox.innerText =
+    errorBoxElement.style.color = "green";
+    errorBoxElement.innerText =
       "Konto właściciela utworzone. Zaloguj się i utwórz firmę.";
+    window.location.href = "index.html";
     return;
   }
 
@@ -76,12 +86,12 @@ async function register() {
       .update({ status: "aktywny", auth_id: user.id })
       .eq("email", email);
 
-    errorBox.style.color = "green";
-    errorBox.innerText = "Konto aktywowane. Możesz się zalogować.";
+    errorBoxElement.style.color = "green";
+    errorBoxElement.innerText = "Konto aktywowane. Możesz się zalogować.";
     return;
   }
 
-  errorBox.innerText =
+  errorBoxElement.innerText =
     "Nie możesz założyć konta. Skontaktuj się z administratorem.";
 }
 
@@ -90,3 +100,5 @@ document.addEventListener("keydown", function (e) {
     register();
   }
 });
+
+window.register = register;

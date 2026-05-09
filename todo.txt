@@ -54,4 +54,12 @@ To też trzeba przetestować ^^
 
 
 
-TRZEBA USTAWIĆ TAK ŻEBY auth_id W TABELI UŻYTKOWNIK ODPOWIADAŁO ID Z authentication-user I JESZCZE NIE DZIAŁA DALEJ ZMIANA DANYCH DLA KIEROWCY 
+TRZEBA USTAWIĆ TAK ŻEBY auth_id W TABELI UŻYTKOWNIK ODPOWIADAŁO ID Z authentication-user I JESZCZE NIE DZIAŁA DALEJ ZMIANA DANYCH DLA KIEROWCY
+
+
+jak już jakiś view jest otwart to nie powinno się go dać kliknąć żeby nie pojawiał się nowy loader
+email w dodaj kierowcę trzeba zweryfikować email żeby to faktycznie był email
+NIP i REGON dodać max liczbe znaków
+kalendarz czy ciężarówka jest w trasie czy nie     niby spoko pomysł
+
+trzeba będzie to zrobić w nowym repo na githubie i ukryć .env i node_modules w gitIgnore
