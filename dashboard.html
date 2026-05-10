@@ -132,9 +132,9 @@
           <div class="createFirmaForm createForm">
             <h3>Dane firmy</h3>
             <p>Nazwa firmy</p>
-            <input type="text" id="firmaNazwa" placeholder="nazwa firmy" />
+            <input type="text" id="firmaNazwa"/>
             <p>Email firmy</p>
-            <input type="email" id="firmaAdres" placeholder="firma@email.pl" />
+            <input type="email" id="firmaAdres"/>
             <div class="createFormButtons">
               <button class="acceptButton" onclick="createFirmaFromForm()">
                 Akceptuj
@@ -264,23 +264,21 @@
             <input
               type="text"
               id="pojazdNumerRejestracyjny"
-              placeholder="WA 12345"
             />
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Marka</p>
-                <input type="text" id="pojazdMarka" maxlength="30" placeholder="Scania" />
+                <input type="text" id="pojazdMarka" maxlength="30"  />
               </div>
               <div class="halfScreenInput">
                 <p>Model</p>
-                <input type="text" id="pojazdModel" maxlength="30" placeholder="R450" />
+                <input type="text" id="pojazdModel" maxlength="30"  />
               </div>
               <div class="halfScreenInput">
                 <p>Rok produkcji</p>
                 <input
                   type="number"
                   id="pojazdRokProdukcji"
-                  placeholder="2000"
                   min="1900"
                 />
               </div>
@@ -289,7 +287,6 @@
                 <input
                   type="text"
                   id="pojazdNumerVIN"
-                  placeholder="YS2R4X20001234567"
                   maxlength="17"
 
                 />
@@ -349,11 +346,11 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Imię</p>
-                <input type="text" id="kierowcaImie" maxlength="30" placeholder="Jan" />
+                <input type="text" id="kierowcaImie" maxlength="30"/>
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
-                <input type="text" id="kierowcaNazwisko" maxlength="30" placeholder="Nowak" />
+                <input type="text" id="kierowcaNazwisko" maxlength="30" />
               </div>
             </div>
             <p>Telefon</p>
@@ -364,6 +361,7 @@
               pattern="^\+[0-9]{2}\s[0-9]{9}$"
               maxlength="15"
               required
+              placeholder="+48"
               autocomplete="off"
             />
             <p>E-mail</p>
@@ -371,7 +369,6 @@
               type="email"
               id="kierowcaMail"
               maxlength="50"
-              placeholder="jan.kowalski@fleetmanager.pl"
             />
             <div class="createFormButtons">
               <button class="acceptButton" onclick="dodajKierowcęFromForm()">
@@ -442,7 +439,6 @@
               type="text"
               id="dokumentNazwa"
               maxlength="50"
-              placeholder="Ubezpieczenie OC"
             />
             <p>Data ważności</p>
             <input
@@ -555,25 +551,25 @@
             </div>
             <div id="emailWrapper">
               <p>Email</p>
-              <input type="email" id="użytkownikMail" readonly placeholder="użytkownik@email.pl" />
+              <input type="email" id="użytkownikMail" readonly />
             </div>
 
             <div class="createFormGrid" id="kierowcaDane">
               <div class="halfScreenInput">
                 <div id="imieWrapper" style="display:none;">
                   <p>Imię</p>
-                  <input type="text" id="użytkownikImie" placeholder="Jan" readonly />
+                  <input type="text" id="użytkownikImie" readonly />
                 </div>
               </div>
               <div class="halfScreenInput">
                 <div id="nazwiskoWrapper" style="display:none;">
                   <p>Nazwisko</p>
-                  <input type="text" id="użytkownikNazwisko" placeholder="Nowak" readonly />
+                  <input type="text" id="użytkownikNazwisko" readonly />
                 </div>
               </div>
             </div>
             <p>Tymczasowe hasło</p>
-            <input type="password" id="użytkownikHaslo" placeholder="!@#$%" />
+            <input type="password" id="użytkownikHaslo"/>
             <div class="info">
               <span>Uwaga:</span>Użytkownik powinien zmienić hasło po
               zalogowaniu się na swoje konto.
@@ -601,13 +597,11 @@
             <input
               type="text"
               id="firmaDaneNazwa"
-              placeholder="Transport Firma Sp. z o.o."
             />
             <p>E-mail firmy</p>
             <input
               type="email"
               id="firmaMail"
-              placeholder="kontakt@transportfirma.pl"
             />
             <p>Adres</p>
             <input
@@ -618,18 +612,17 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>NIP</p>
-                <input type="text" id="firmaNIP" maxlength="10" placeholder="1234567890" />
+                <input type="text" id="firmaNIP" maxlength="10"/>
               </div>
               <div class="halfScreenInput">
                 <p>REGON</p>
-                <input type="text" id="firmaREGON" maxlength="9" placeholder="123456789" />
+                <input type="text" id="firmaREGON" maxlength="9"/>
               </div>
             </div>
             <p>Numer licencji transportowej</p>
             <input
               type="text"
               id="firmaNumerLicencji"
-              placeholder="WK/123456/2024"
             />
             <div class="createFormButtons">
               <button
@@ -653,11 +646,11 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Imię</p>
-                <input type="text" id="userImie" placeholder="Jan" />
+                <input type="text" id="userImie" />
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
-                <input type="text" id="userNazwisko" placeholder="Kowalski" />
+                <input type="text" id="userNazwisko"/>
               </div>
             </div>
             <p>Numer telefonu</p>
@@ -689,12 +682,11 @@
             <input
               type="password"
               id="userHaslo"
-              placeholder="Obecne hasło"
             />
             <p>Nowe hasło</p>
-            <input type="password" id="userNoweHaslo" placeholder="Nowe hasło" />
+            <input type="password" id="userNoweHaslo"/>
             <p>Powtórz nowe hasło</p>
-            <input type="password" id="userNoweHasloPowtorz" placeholder="Powtórz nowe hasło" />
+            <input type="password" id="userNoweHasloPowtorz"/>
             <div class="createFormButtons">
               <button
                 class="acceptButton acceptZmianyButton"

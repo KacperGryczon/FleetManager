@@ -59,11 +59,14 @@ import {
   loadUserProfile,
   handleUpdateUserProfile,
   handleChangePassword,
+  renderUserProfile,
 } from "./services/userService.js";
+import { renderUpcomingDocuments } from "./services/dashboardService.js";
 import {
   handleCreateCompany,
   loadCompanySettings,
   handleUpdateCompanySettings,
+  renderCompanySettings,
 } from "./services/companyService.js";
 import { getStatusLabel, getStatusColors } from "./utils/formatters.js";
 import { calculateDocumentStatus } from "./utils/documentStatusCalculator.js";
@@ -75,7 +78,6 @@ let currentUserRole = null;
 
 window.addEventListener("DOMContentLoaded", async () => {
   const currentUser = await getCurrentUser();
-  console.log("sieeeema");
 
   if (!currentUser) {
     window.location.href = "index.html";
@@ -137,6 +139,7 @@ async function loadDashboardData() {
 
   if (!firmaId) return;
 
+  // KIEROWCA
   if (role === "Kierowca") {
     const { data: userRecord } = await client
       .from("UZYTKOWNIK")
@@ -146,24 +149,30 @@ async function loadDashboardData() {
 
     if (userRecord?.kierowca_id) {
       await loadDocumentsForDriverDashboard(userRecord.kierowca_id);
+      updateDocumentDashboardTiles();
+      renderUpcomingDocuments(userRecord.kierowca_id); // <-- TU
     }
 
     return;
   }
 
+  // PRZEGLĄDAJĄCY
   if (role === "Przeglądający") {
     const { documents, error: docError } = await fetchDocumentsForPublicView();
 
     if (!docError) {
       setDocumentsCache(documents || []);
       updateDocumentDashboardTiles();
+      renderUpcomingDocuments(); // <-- TU
     }
 
     return;
   }
 
+  // ADMIN / WŁAŚCICIEL
   await loadDocumentsForCompany(firmaId);
   updateDocumentDashboardTiles();
+  renderUpcomingDocuments(); // <-- TU
 }
 
 document.addEventListener("click", async (e) => {
@@ -175,8 +184,6 @@ document.addEventListener("click", async (e) => {
 
   const viewId = btn.dataset.view;
   const title = btn.dataset.title;
-
-  console.log("Kliknięty widok:", viewId, title);
 
   const role = await getUserRole();
   const firmaId = await getCompanyIdForUser();
@@ -200,48 +207,165 @@ document.addEventListener("click", async (e) => {
   } else if (viewId === "viewUżytkownicy") {
     loadCallback = () => loadAndRenderUsers(firmaId);
   } else if (viewId === "viewUstawieniaFirmy") {
-    loadCallback = loadCompanySettings;
+    loadCallback = renderCompanySettings;
   } else if (viewId === "viewUstawieniaProfilu") {
-    loadCallback = loadUserProfile;
+    loadCallback = renderUserProfile;
   } else if (viewId === "viewMojePojazdy") {
     loadCallback = async () => {
-      const userData = await client.auth.getUser();
-      if (userData.data.user) {
-        const { data: vehicles } = await client
-          .from("POJAZD")
-          .select("*")
-          .eq("przypisany_kierowca_id", userData.data.user.id);
+      const authUser = await client.auth.getUser();
+      const user = authUser.data.user;
 
-        const container = document.getElementById("mojePojazdyRows");
-        if (container) {
-          container.innerHTML = "";
+      if (!user) return;
 
-          if (!vehicles || vehicles.length === 0) {
-            container.innerHTML = `
-              <div class="brakPojazdow">
-                <p>Nie masz żadnych przypisanych pojazdów.</p>
-              </div>
-            `;
-            return;
-          }
+      // 1. Pobierz rekord użytkownika z bazy
+      const { data: userRecord, error: userError } = await client
+        .from("UZYTKOWNIK")
+        .select("kierowca_id")
+        .eq("auth_id", user.id)
+        .single();
 
-          vehicles.forEach((vehicle) => {
-            const row = document.createElement("div");
-            row.classList.add("table", "table-row");
-            row.innerHTML = `
-              <div>${vehicle.numer_rejestracyjny}</div>
-              <div>${vehicle.marka}</div>
-              <div>${vehicle.model}</div>
-              <div>
-                <button data-details="pojazd" data-id="${vehicle.id}">
-                  <i class="fa-regular fa-eye"></i>Szczegóły
-                </button>
-              </div>
-            `;
-            container.appendChild(row);
-          });
-        }
+      if (userError || !userRecord || !userRecord.kierowca_id) {
+        console.warn("Brak kierowca_id dla użytkownika");
+        return;
       }
+
+      const kierowcaId = userRecord.kierowca_id;
+
+      // 2. Pobierz pojazdy przypisane do kierowcy
+      const { data: vehicles, error: vehError } = await client
+        .from("POJAZD")
+        .select("*")
+        .eq("przypisany_kierowca_id", kierowcaId);
+
+      const container = document.getElementById("mojePojazdyRows");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      if (vehError || !vehicles || vehicles.length === 0) {
+        container.innerHTML = `
+        <div class="brakPojazdow">
+          <p>Nie masz żadnych przypisanych pojazdów.</p>
+        </div>
+      `;
+        return;
+      }
+
+      vehicles.forEach((vehicle) => {
+        const row = document.createElement("div");
+        row.classList.add("table", "table-row");
+        row.innerHTML = `
+        <div>${vehicle.numer_rejestracyjny}</div>
+        <div>${vehicle.marka}</div>
+        <div>${vehicle.model}</div>
+        <div>
+          <button data-details="pojazd" data-id="${vehicle.id}">
+            <i class="fa-regular fa-eye"></i>Szczegóły
+          </button>
+        </div>
+      `;
+        container.appendChild(row);
+      });
+    };
+  } else if (viewId === "viewMojeDokumenty") {
+    loadCallback = async () => {
+      const authUser = await client.auth.getUser();
+      const user = authUser.data.user;
+      if (!user) return;
+
+      const { data: userRecord } = await client
+        .from("UZYTKOWNIK")
+        .select("kierowca_id")
+        .eq("auth_id", user.id)
+        .single();
+
+      const kierowcaId = userRecord?.kierowca_id;
+      if (!kierowcaId) return;
+
+      const { data: driverDocs } = await client
+        .from("DOKUMENT")
+        .select("*")
+        .eq("typ_wlasciciela", "Kierowca")
+        .eq("wlasciciel_id", kierowcaId);
+
+      const { data: vehicles } = await client
+        .from("POJAZD")
+        .select("id, numer_rejestracyjny")
+        .eq("przypisany_kierowca_id", kierowcaId);
+
+      const vehicleIds = vehicles.map((v) => v.id);
+
+      let vehicleDocs = [];
+      if (vehicleIds.length > 0) {
+        const { data } = await client
+          .from("DOKUMENT")
+          .select("*")
+          .eq("typ_wlasciciela", "Pojazd")
+          .in("wlasciciel_id", vehicleIds);
+
+        vehicleDocs = data || [];
+      }
+
+      const documents = [...driverDocs, ...vehicleDocs];
+
+      const container = document.getElementById("mojeDokumentyRows");
+      container.innerHTML = "";
+
+      if (documents.length === 0) {
+        container.innerHTML = `
+        <div class="brakPojazdow">
+          <p>Nie masz żadnych dokumentów.</p>
+        </div>
+      `;
+        return;
+      }
+
+      documents.forEach((doc) => {
+        const row = document.createElement("div");
+        row.classList.add("table", "table-row");
+
+        // 🔥 NAJPIERW definiujemy zmienne
+        const nazwa = doc.nazwa_dokumentu || doc.typ_dokumentu || "Dokument";
+
+        const wlasciciel =
+          doc.typ_wlasciciela === "Kierowca"
+            ? "Ty"
+            : vehicles.find((v) => v.id === doc.wlasciciel_id)
+                ?.numer_rejestracyjny || "Pojazd";
+
+        const wygasa = doc.data_waznosci || "-";
+
+        const label = getStatusLabel(doc.status);
+        const colors = getStatusColors(doc.status);
+
+        // 🔥 Dopiero teraz generujemy HTML
+        row.innerHTML = `
+    <div>${nazwa}</div>
+    <div>${wlasciciel}</div>
+    <div>${wygasa}</div>
+    <div>
+      <span class="status-text" 
+        style="
+          background-color:${colors.background};
+          border:2px solid ${colors.border};
+          font-weight:bold;
+          border-radius: 16px;
+          padding: 8px 16px;
+          text-align: center;
+          display: inline-block;
+        ">
+        ${label}
+      </span>
+    </div>
+    <div>
+      <button data-details="dokument" data-id="${doc.id}">
+        <i class="fa-regular fa-eye"></i>Szczegóły
+      </button>
+    </div>
+  `;
+
+        container.appendChild(row);
+      });
     };
   }
 
@@ -289,7 +413,7 @@ document.addEventListener("click", async (e) => {
           </div>
         </div>
         <p class="przypisanyKierowcaP">Przypisany kierowca</p>
-        <div class="przypisanyKierowca">
+        <div id="przypisanyKierowcaModal" class="przypisanyKierowca">
           <h3>${driverName}</h3>
         </div>
         <button class="usunPojazdBtn" onclick="window.deleteVehicleHandler()">
@@ -362,7 +486,7 @@ document.addEventListener("click", async (e) => {
           </div>
         </div>
         <p class="przypisanyKierowcaP">Przypisany do</p>
-        <div class="przypisanyKierowca">
+        <div id="przypisanyKierowcaModal" class="przypisanyKierowca">
           <h3>${ownerName}</h3>
         </div>
         ${downloadLink}

@@ -1,10 +1,10 @@
-import { getCompanyIdForUser } from "../auth/authService.js";
+import { getCompanyIdForUser } from "./auth/authService.js";
 import {
   loadAvailableDriversForUserForm,
   getDriverInfoForUserForm,
-} from "../services/driverService.js";
-import { parseDriverName } from "../utils/formatters.js";
-import { client } from "../api/supabase.js";
+} from "./services/driverService.js";
+import { parseDriverName } from "./utils/formatters.js";
+import { client } from "./api/supabase.js";
 
 export function setupDocumentTypeChangeHandler() {
   const documentTypeSelect = document.getElementById("dokumentTypPrzypisania");

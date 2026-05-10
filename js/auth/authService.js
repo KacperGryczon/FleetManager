@@ -17,7 +17,7 @@ export async function getUserRole() {
   const { data: userRecord } = await client
     .from("UZYTKOWNIK")
     .select("rola")
-    .eq("email", currentUser.email)
+    .eq("auth_id", currentUser.id)
     .single();
 
   return userRecord?.rola || null;
@@ -38,7 +38,7 @@ export async function getCompanyIdForUser() {
   const { data: userRecord } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
-    .eq("email", currentUser.email)
+    .eq("auth_id", currentUser.id)
     .maybeSingle();
 
   return userRecord?.firma_id || null;

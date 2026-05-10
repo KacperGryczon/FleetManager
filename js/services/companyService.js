@@ -20,7 +20,6 @@ export async function handleCreateCompany(companyName, companyEmail) {
   }
 
   const currentUser = await getCurrentUser();
-
   if (!currentUser) {
     showAlert(false, "Brak zalogowanego użytkownika.");
     return false;
@@ -36,6 +35,17 @@ export async function handleCreateCompany(companyName, companyEmail) {
     showAlert(false, "Nie udało się dodać firmy.");
     return false;
   }
+
+  const { data: firma } = await client
+    .from("FIRMA")
+    .select("id")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  await client
+    .from("UZYTKOWNIK")
+    .update({ firma_id: firma.id })
+    .eq("auth_id", currentUser.id);
 
   showAlert(true, "Firma została dodana.");
   return true;
@@ -55,6 +65,23 @@ export async function loadCompanySettings() {
   if (error) return null;
 
   return company;
+}
+
+export async function renderCompanySettings() {
+  const company = await loadCompanySettings();
+
+  if (!company) {
+    showAlert(false, "Nie udało się pobrać danych firmy.");
+    return;
+  }
+
+  document.getElementById("firmaDaneNazwa").value = company.nazwa || "";
+  document.getElementById("firmaMail").value = company.email || "";
+  document.getElementById("firmaDaneAdres").value = company.adres || "";
+  document.getElementById("firmaNIP").value = company.nip || "";
+  document.getElementById("firmaREGON").value = company.regon || "";
+  document.getElementById("firmaNumerLicencji").value =
+    company.numer_licencji || "";
 }
 
 export async function handleUpdateCompanySettings(companyData) {

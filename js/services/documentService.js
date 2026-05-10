@@ -14,6 +14,7 @@ import {
   fetchVehiclesForPublicView,
   fetchDriversForPublicView,
 } from "../api/documentApi.js";
+import { fetchVehiclesForDriver } from "../api/vehicleApi.js";
 import { showAlert } from "../ui/alertService.js";
 import { calculateDocumentStatus } from "../utils/documentStatusCalculator.js";
 import { getStatusLabel, getStatusColors } from "../utils/formatters.js";
@@ -49,7 +50,29 @@ export async function loadDocumentsForDriverDashboard(kierowcaId) {
     return false;
   }
 
-  dokumentyCache = driverDocuments || [];
+  const { vehicles, error: vehicleError } =
+    await fetchVehiclesForDriver(kierowcaId);
+
+  if (vehicleError) {
+    return false;
+  }
+
+  const vehicleIds = vehicles.map((v) => v.id);
+
+  let vehicleDocuments = [];
+  if (vehicleIds.length > 0) {
+    const { documents: vDocs, error: vError } =
+      await fetchDocumentsForVehicles(vehicleIds);
+
+    if (!vError) {
+      vehicleDocuments = vDocs || [];
+    }
+  }
+
+  const allDocuments = [...driverDocuments, ...vehicleDocuments];
+
+  setDocumentsCache(allDocuments);
+
   return true;
 }
 
@@ -126,12 +149,10 @@ export function updateDocumentDashboardTiles() {
 }
 
 export function getDocumentFiltersApplied() {
-  const statusFilter = document.querySelector(
-    ".filtry .buttons:nth-child(1) .active",
-  );
-  const typeFilter = document.querySelector(
-    ".filtry .buttons:nth-child(2) .active",
-  );
+  const groups = document.querySelectorAll(".filtry .buttons");
+
+  const statusFilter = groups[0]?.querySelector(".active");
+  const typeFilter = groups[1]?.querySelector(".active");
 
   return {
     status: statusFilter ? statusFilter.textContent.trim() : "Wszystkie",
@@ -244,6 +265,16 @@ export async function handleAddDocument(documentFormData, firmaId) {
     showAlert(false, "Błąd podczas zapisywania dokumentu");
     return false;
   }
+
+  // 🔥 ZAMIAST DODAWAĆ RĘCZNIE → PRZEŁADUJEMY DANE
+  await loadDocumentsForCompany(firmaId);
+
+  updateDocumentDashboardTiles();
+  applyDocumentFilters();
+
+  import("./dashboardService.js").then(({ renderUpcomingDocuments }) => {
+    renderUpcomingDocuments();
+  });
 
   showAlert(true, "Dokument został dodany");
   return true;

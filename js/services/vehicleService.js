@@ -119,6 +119,8 @@ export async function handleAddVehicle(vehicleFormData, firmaId) {
     return false;
   }
 
+  await loadAndRenderVehicles(firmaId);
+
   showAlert(true, "Pojazd został dodany.");
   return true;
 }

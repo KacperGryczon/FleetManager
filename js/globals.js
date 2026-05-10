@@ -36,8 +36,9 @@ window.createFirmaFromForm = async function () {
   const email = document.getElementById("firmaAdres")?.value.trim();
 
   if (await handleCreateCompany(nazwa, email)) {
-    showView("viewDashboard", "Pulpit");
-    location.reload();
+    await new Promise((r) => setTimeout(r, 150));
+    showView("viewDashboard", "Pulpit", loadDashboardData);
+    location.reload;
   }
 };
 
@@ -227,7 +228,7 @@ window.goToDashboard = async function () {
   const { data: userRecord } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
-    .eq("email", currentUser.email)
+    .eq("auth_id", currentUser.id)
     .maybeSingle();
 
   if (!userRecord || !userRecord.firma_id) {

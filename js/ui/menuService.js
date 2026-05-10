@@ -14,10 +14,7 @@ export function getCurrentViewId() {
 }
 
 export async function showView(viewId, title, loadViewDataCallback) {
-  console.log("showView called:", viewId, title);
-
   if (currentViewId === viewId) {
-    console.log("Już w tym widoku:", viewId);
     return;
   }
 
@@ -38,11 +35,9 @@ export async function showView(viewId, title, loadViewDataCallback) {
   const viewElement = document.getElementById(viewId);
   if (!viewElement) {
     hideLoader();
-    console.error("Element nie znaleziony:", viewId);
     return;
   }
 
-  console.log("Dodaję klasę visible do:", viewId);
   viewElement.classList.add("visible");
 
   viewElement.querySelectorAll("input").forEach((el) => {

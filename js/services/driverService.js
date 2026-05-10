@@ -95,6 +95,8 @@ export async function handleAddDriver(driverFormData, firmaId) {
     }
   }
 
+  await loadAndRenderDrivers(firmaId);
+
   showAlert(true, "Kierowca został dodany / zaktualizowany");
   return true;
 }

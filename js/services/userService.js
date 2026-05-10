@@ -80,8 +80,6 @@ export async function handleAddUser(userFormData, firmaId) {
     return false;
   }
 
-  const currentUser = await getCurrentUser();
-
   const currentSession = await getCurrentSession();
   const accessToken = currentSession?.access_token;
   const refreshToken = currentSession?.refresh_token;
@@ -130,6 +128,8 @@ export async function handleAddUser(userFormData, firmaId) {
     return false;
   }
 
+  await loadAndRenderUsers(firmaId);
+
   showAlert(true, "Użytkownik został dodany.");
   return true;
 }
@@ -168,6 +168,19 @@ export async function loadUserProfile() {
   }
 
   return user;
+}
+
+export async function renderUserProfile() {
+  const user = await loadUserProfile();
+
+  if (!user) {
+    showAlert(false, "Nie udało się pobrać danych profilu.");
+    return;
+  }
+
+  document.getElementById("userImie").value = user.imie || "";
+  document.getElementById("userNazwisko").value = user.nazwisko || "";
+  document.getElementById("userTelefon").value = user.telefon || "+48 ";
 }
 
 export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
