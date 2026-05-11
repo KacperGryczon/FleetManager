@@ -120,7 +120,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   currentUserRole = await getUserRole();
 });
 
-async function applyRoleRestrictions() {
+export async function applyRoleRestrictions() {
   const role = await getUserRole();
 
   hideAllMenuItems();
@@ -133,13 +133,12 @@ async function applyRoleRestrictions() {
   }
 }
 
-async function loadDashboardData() {
+export async function loadDashboardData() {
   const role = await getUserRole();
   const firmaId = await getCompanyIdForUser();
 
   if (!firmaId) return;
 
-  // KIEROWCA
   if (role === "Kierowca") {
     const { data: userRecord } = await client
       .from("UZYTKOWNIK")
@@ -150,29 +149,27 @@ async function loadDashboardData() {
     if (userRecord?.kierowca_id) {
       await loadDocumentsForDriverDashboard(userRecord.kierowca_id);
       updateDocumentDashboardTiles();
-      renderUpcomingDocuments(userRecord.kierowca_id); // <-- TU
+      renderUpcomingDocuments(userRecord.kierowca_id);
     }
 
     return;
   }
 
-  // PRZEGLĄDAJĄCY
   if (role === "Przeglądający") {
     const { documents, error: docError } = await fetchDocumentsForPublicView();
 
     if (!docError) {
       setDocumentsCache(documents || []);
       updateDocumentDashboardTiles();
-      renderUpcomingDocuments(); // <-- TU
+      renderUpcomingDocuments();
     }
 
     return;
   }
 
-  // ADMIN / WŁAŚCICIEL
   await loadDocumentsForCompany(firmaId);
   updateDocumentDashboardTiles();
-  renderUpcomingDocuments(); // <-- TU
+  renderUpcomingDocuments();
 }
 
 document.addEventListener("click", async (e) => {
@@ -217,7 +214,6 @@ document.addEventListener("click", async (e) => {
 
       if (!user) return;
 
-      // 1. Pobierz rekord użytkownika z bazy
       const { data: userRecord, error: userError } = await client
         .from("UZYTKOWNIK")
         .select("kierowca_id")
@@ -231,7 +227,6 @@ document.addEventListener("click", async (e) => {
 
       const kierowcaId = userRecord.kierowca_id;
 
-      // 2. Pobierz pojazdy przypisane do kierowcy
       const { data: vehicles, error: vehError } = await client
         .from("POJAZD")
         .select("*")
@@ -324,7 +319,6 @@ document.addEventListener("click", async (e) => {
         const row = document.createElement("div");
         row.classList.add("table", "table-row");
 
-        // 🔥 NAJPIERW definiujemy zmienne
         const nazwa = doc.nazwa_dokumentu || doc.typ_dokumentu || "Dokument";
 
         const wlasciciel =
@@ -338,7 +332,6 @@ document.addEventListener("click", async (e) => {
         const label = getStatusLabel(doc.status);
         const colors = getStatusColors(doc.status);
 
-        // 🔥 Dopiero teraz generujemy HTML
         row.innerHTML = `
     <div>${nazwa}</div>
     <div>${wlasciciel}</div>

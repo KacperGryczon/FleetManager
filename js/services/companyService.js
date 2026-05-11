@@ -32,20 +32,62 @@ export async function handleCreateCompany(companyName, companyEmail) {
   });
 
   if (error) {
+    console.error("Błąd tworzenia firmy:", error);
     showAlert(false, "Nie udało się dodać firmy.");
     return false;
   }
 
-  const { data: firma } = await client
+  const { data: firma, error: firmaError } = await client
     .from("FIRMA")
     .select("id")
     .eq("user_id", currentUser.id)
     .single();
 
-  await client
+  if (firmaError || !firma) {
+    console.error("Błąd pobierania firmy:", firmaError);
+    showAlert(false, "Nie udało się pobrać danych firmy.");
+    return false;
+  }
+
+  // Pobranie obecnego wpisu użytkownika
+  const { data: userRecord, error: getUserError } = await client
     .from("UZYTKOWNIK")
-    .update({ firma_id: firma.id })
-    .eq("auth_id", currentUser.id);
+    .select("*")
+    .eq("auth_id", currentUser.id)
+    .maybeSingle();
+
+  if (getUserError) {
+    console.error("Błąd pobierania danych użytkownika:", getUserError);
+  }
+
+  // Jeśli wpis nie istnieje, go tworzymy
+  if (!userRecord) {
+    const { error: insertError } = await client.from("UZYTKOWNIK").insert({
+      auth_id: currentUser.id,
+      email: currentUser.email,
+      firma_id: firma.id,
+      rola: "Właściciel",
+      status: "aktywny",
+    });
+
+    if (insertError) {
+      console.error("Błąd tworzenia wpisu użytkownika:", insertError);
+      showAlert(false, "Nie udało się zaktualizować profilu.");
+      return false;
+    }
+  } else {
+    // Jeśli wpis istnieje, go aktualizujemy
+    const { error: updateError } = await client
+      .from("UZYTKOWNIK")
+      .update({ firma_id: firma.id })
+      .eq("auth_id", currentUser.id);
+
+    if (updateError) {
+      console.error("Błąd aktualizacji profilu:", updateError);
+      showAlert(false, "Nie udało się zaktualizować profilu.");
+      return false;
+    }
+  }
 
   showAlert(true, "Firma została dodana.");
   return true;

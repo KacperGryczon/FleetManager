@@ -1198,7 +1198,7 @@ select {
   font-weight: 500;
 }
 
-@media only screen and (width <= 1200px) {
+@media only screen and (width <= 1450px) {
   #menuBar {
     position: fixed;
     transform: translateX(-350px);

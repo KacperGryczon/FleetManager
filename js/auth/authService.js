@@ -14,13 +14,23 @@ export async function getUserRole() {
   const currentUser = await getCurrentUser();
   if (!currentUser) return null;
 
-  const { data: userRecord } = await client
-    .from("UZYTKOWNIK")
-    .select("rola")
-    .eq("auth_id", currentUser.id)
-    .single();
+  try {
+    const { data: userRecord, error } = await client
+      .from("UZYTKOWNIK")
+      .select("rola")
+      .eq("auth_id", currentUser.id)
+      .maybeSingle();
 
-  return userRecord?.rola || null;
+    if (error) {
+      console.error("Błąd pobierania roli:", error);
+      return null;
+    }
+
+    return userRecord?.rola || null;
+  } catch (err) {
+    console.error("Wyjątek przy pobieraniu roli:", err);
+    return null;
+  }
 }
 
 export async function getCompanyIdForUser() {

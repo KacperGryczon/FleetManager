@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   getUserRole,
 } from "./auth/authService.js";
+import { loadDashboardData, applyRoleRestrictions } from "./main.js";
 import {
   handleCreateCompany,
   handleUpdateCompanySettings,
@@ -36,9 +37,14 @@ window.createFirmaFromForm = async function () {
   const email = document.getElementById("firmaAdres")?.value.trim();
 
   if (await handleCreateCompany(nazwa, email)) {
-    await new Promise((r) => setTimeout(r, 150));
+    // Czekaj aby baza danych zsynchronizowała się
+    await new Promise((r) => setTimeout(r, 500));
+
+    // Wymuś pobranie świeżych danych z bazy
+    await applyRoleRestrictions();
+
+    // Pokaż dashboard
     showView("viewDashboard", "Pulpit", loadDashboardData);
-    location.reload;
   }
 };
 
