@@ -63,3 +63,44 @@ NIP i REGON dodać max liczbe znaków
 kalendarz czy ciężarówka jest w trasie czy nie     niby spoko pomysł
 
 trzeba będzie to zrobić w nowym repo na githubie i ukryć .env i node_modules w gitIgnore
+
+tylko że w dokumentach zmienia się data, a nie aktualizuje się status, i dalej wyświetla się jako "wkrótce wygasa" i nie aktualizują się dane w dashboardzie. Jeszcze popraw dodatkową rzeczy bo w dashobrdzie kierowcy w "nadchodzące terminy" wyświetlają się tylko dokumenty przypisane do tego kierowcy, a nie wyświetlają się dokumenty przypisane do jego pojazdów
+
+
+dalej nie naprawił tego że jak zmieniam imię i nazwisko użytkownika to i tak się nie zmienia w tabeli kierowca
+dalej nie naprawił że dokumenty się nie chcą pobierać
+dalej nie naprawił że kierowca może edytować dokumenty
+
+musi naprawić żeby przeglądający nie mógł usuwać użytkowników jak kliknie w ich szczegóły 
+musi naprawić bo użytkownikowi administratorowi nie może zmodyfikować żadnych danych, oprócz użytkowników i ustawień własnego profilu
+ale naprawił to pole emaila w dodawaniu użytkownika
+
+
+
+
+
+
+
+Here are the problems that are STILL not fixed: 1. When I change a user’s first and last name, the value in the KIEROWCA table does not update.
+
+The UZYTKOWNIK table updates, but KIEROWCA.imie_nazwisko stays unchanged. 2. Documents still cannot be downloaded.
+
+Clicking to download a document does not return the file correctly (previously it was redirecting to something like %7B%7D). 3. A driver can update documents, but the new data isn't updated in the database. New issues that MUST be fixed: 1. A viewer (Przeglądający) must not be able to delete users from the “user details” view.
+
+Right now, a viewer can open user details and still perform destructive actions like delete, which should be blocked. 2. The Administrator user still cannot modify any company-related data, vehicles, drivers, or documents.
+
+The administrator can currently only:
+
+manage users
+
+change their own profile settings
+
+The administrator should have permissions similar to the Owner (according to the PERMISSIONS config), including:
+
+managing fleet (vehicles)
+
+managing drivers
+
+managing documents
+
+managing company settings.

@@ -10,6 +10,7 @@ import {
 } from "../api/driverApi.js";
 import { showAlert } from "../ui/alertService.js";
 import { validateEmail, validateDriverName } from "../utils/validators.js";
+import { can } from "../auth/permissionService.js";
 
 export async function loadAndRenderDrivers(firmaId) {
   const container = document.getElementById("kierowcyRows");
@@ -63,6 +64,11 @@ export async function handleAddDriver(driverFormData, firmaId) {
     return false;
   }
 
+  if (!(await can("canManageDrivers"))) {
+    showAlert(false, "Nie masz uprawnień do dodawania kierowców");
+    return false;
+  }
+
   const { driver: existingDriver, error: checkError } =
     await checkDriverExists(email);
 
@@ -97,11 +103,16 @@ export async function handleAddDriver(driverFormData, firmaId) {
 
   await loadAndRenderDrivers(firmaId);
 
-  showAlert(true, "Kierowca został dodany / zaktualizowany");
+  showAlert(true, "Kierowca został dodany");
   return true;
 }
 
 export async function handleDeleteDriver(driverId) {
+  if (!(await can("canManageDrivers"))) {
+    showAlert(false, "Nie masz uprawnień do usuwania kierowców");
+    return false;
+  }
+
   const { error } = await deleteDriver(driverId);
 
   if (error) {

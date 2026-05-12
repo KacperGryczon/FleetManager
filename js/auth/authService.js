@@ -35,23 +35,58 @@ export async function getUserRole() {
 
 export async function getCompanyIdForUser() {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return null;
+  if (!currentUser) {
+    console.error("getCompanyIdForUser: Brak zalogowanego użytkownika");
+    return null;
+  }
 
-  const { data: companyFromUser } = await client
+  // Szukamy firmy po user_id (dla właściciela)
+  const { data: companyFromUser, error: companyError } = await client
     .from("FIRMA")
     .select("id")
     .eq("user_id", currentUser.id)
     .maybeSingle();
 
-  if (companyFromUser?.id) return companyFromUser.id;
+  if (companyError) {
+    console.error("Błąd pobierania firmy po user_id:", companyError);
+  }
 
-  const { data: userRecord } = await client
+  if (companyFromUser?.id) {
+    console.log(
+      "getCompanyIdForUser: Znaleziono firmę po user_id:",
+      companyFromUser.id,
+    );
+    return companyFromUser.id;
+  }
+
+  // Fallback: szukamy firma_id w tabeli UZYTKOWNIK (dla administratora i innych użytkowników)
+  const { data: userRecord, error: userError } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")
     .eq("auth_id", currentUser.id)
     .maybeSingle();
 
-  return userRecord?.firma_id || null;
+  if (userError) {
+    console.error("Błąd pobierania firma_id z UZYTKOWNIK:", userError);
+  }
+
+  if (!userRecord) {
+    console.error(
+      "getCompanyIdForUser: Nie znaleziono wpisu użytkownika w UZYTKOWNIK",
+    );
+    return null;
+  }
+
+  const firmaId = userRecord?.firma_id;
+  if (!firmaId) {
+    console.error(
+      "getCompanyIdForUser: Użytkownik nie ma przypisanej firmy (firma_id jest null)",
+    );
+    return null;
+  }
+
+  console.log("getCompanyIdForUser: Znaleziono firmę z UZYTKOWNIK:", firmaId);
+  return firmaId;
 }
 
 export async function checkSession(redirectIfLoggedIn = false) {

@@ -1,0 +1,4 @@
+.env
+node_modules/
+js/api/supbase.js
+todo.txt

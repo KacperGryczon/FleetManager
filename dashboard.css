@@ -60,6 +60,11 @@ body .darker {
   flex: 1;
 }
 
+#menuBar .icon-content img {
+  width: 70px;
+  border-radius: 16px;
+}
+
 #menuBar .icon-box i {
   background-color: #2563eb;
   padding: 10px;
@@ -482,7 +487,8 @@ select {
 #użytkownikNazwisko,
 #userImie,
 #userNazwisko,
-#przypisanyKierowcaModal {
+#przypisanyKierowcaModal,
+.danePojazduTile h3 {
   text-transform: capitalize;
 }
 
@@ -1190,6 +1196,27 @@ select {
 }
 
 .usunPojazdBtn i {
+  margin-right: 16px;
+}
+
+.edytujBtn {
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  background-color: rgb(0, 119, 182);
+  color: white;
+  font-size: 1.2rem;
+  transition: all ease-in 0.1s;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.edytujBtn:hover {
+  background-color: rgb(0, 90, 150);
+}
+
+.edytujBtn i {
   margin-right: 16px;
 }
 .loader p {

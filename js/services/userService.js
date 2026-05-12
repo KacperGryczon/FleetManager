@@ -8,7 +8,7 @@ import {
   deleteUser,
   fetchUserProfile,
 } from "../api/userApi.js";
-import { updateDriver } from "../api/driverApi.js";
+import { updateDriver, checkDriverExists } from "../api/driverApi.js";
 import { showAlert } from "../ui/alertService.js";
 import {
   validateEmail,
@@ -18,6 +18,7 @@ import {
 import { client } from "../api/supabase.js";
 import { getCurrentUser, getCurrentSession } from "../auth/authService.js";
 import { getCompanyIdForUser } from "../auth/authService.js";
+import { can } from "../auth/permissionService.js";
 
 let usersCache = [];
 
@@ -135,6 +136,11 @@ export async function handleAddUser(userFormData, firmaId) {
 }
 
 export async function handleDeleteUser(userId) {
+  if (!(await can("canManageUsers"))) {
+    showAlert(false, "Nie masz uprawnień do usuwania użytkowników");
+    return false;
+  }
+
   const { error } = await deleteUser(userId);
 
   if (error) {
@@ -215,13 +221,43 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
     return false;
   }
 
-  if (userRecord.kierowca_id) {
-    const { error: driverError } = await updateDriver(userRecord.kierowca_id, {
-      imie_nazwisko: `${imie} ${nazwisko}`,
-      telefon,
+  let driverId = userRecord.kierowca_id;
+
+  const { driver: existingDriver, error: driverLookupError } =
+    await checkDriverExists(currentUser.email);
+
+  if (driverLookupError) {
+    console.error("Driver lookup error:", driverLookupError);
+  }
+
+  if (!driverId && existingDriver?.id) {
+    driverId = existingDriver.id;
+
+    const { error: linkError } = await updateUser(userRecord.id, {
+      kierowca_id: driverId,
     });
 
+    if (linkError) {
+      console.warn(
+        "Nie udało się zaktualizować powiązania kierowcy:",
+        linkError,
+      );
+    }
+  }
+
+  if (driverId) {
+    const driverUpdateData = {
+      imie_nazwisko: `${imie} ${nazwisko}`,
+      telefon,
+    };
+
+    const { error: driverError } = await updateDriver(
+      driverId,
+      driverUpdateData,
+    );
+
     if (driverError) {
+      console.error("Driver update error:", driverError);
       showAlert(
         false,
         "Profil zapisano, ale nie udało się zaktualizować kierowcy.",

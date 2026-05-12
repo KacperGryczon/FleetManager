@@ -4,6 +4,7 @@ import {
   createVehicle,
   deleteVehicle,
   fetchAvailableDrivers,
+  updateVehicle,
 } from "../api/vehicleApi.js";
 import { showAlert } from "../ui/alertService.js";
 import {
@@ -126,6 +127,11 @@ export async function handleAddVehicle(vehicleFormData, firmaId) {
 }
 
 export async function handleDeleteVehicle(vehicleId) {
+  if (!(await can("canManageFleet"))) {
+    showAlert(false, "Nie masz uprawnień do usuwania pojazdów");
+    return false;
+  }
+
   const { error } = await deleteVehicle(vehicleId);
 
   if (error) {
@@ -146,4 +152,34 @@ export async function getVehicleDetails(vehicleId) {
   }
 
   return vehicle;
+}
+
+export async function handleAssignVehicleToDriver(vehicleId, driverId) {
+  if (!vehicleId) {
+    showAlert(false, "Brak ID pojazdu");
+    return false;
+  }
+
+  if (!(await can("canManageFleet"))) {
+    showAlert(false, "Nie masz uprawnień do przypisywania pojazdów");
+    return false;
+  }
+
+  if (!driverId) {
+    showAlert(false, "Wybierz kierowcę");
+    return false;
+  }
+
+  const { error } = await updateVehicle(vehicleId, {
+    przypisany_kierowca_id: driverId,
+  });
+
+  if (error) {
+    console.error("Błąd przypisania pojazdu:", error);
+    showAlert(false, "Nie udało się przypisać pojazdu");
+    return false;
+  }
+
+  showAlert(true, "Pojazd został przypisany");
+  return true;
 }

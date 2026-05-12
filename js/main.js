@@ -29,6 +29,7 @@ import {
   handleAddVehicle,
   handleDeleteVehicle,
   getVehicleDetails,
+  handleAssignVehicleToDriver,
 } from "./services/vehicleService.js";
 import {
   loadAndRenderDrivers,
@@ -50,6 +51,7 @@ import {
   getDocumentsCache,
   setDocumentsCache,
   loadDocumentsForDriverDashboard,
+  handleUpdateDocument,
 } from "./services/documentService.js";
 import {
   loadAndRenderUsers,
@@ -71,6 +73,7 @@ import {
 import { getStatusLabel, getStatusColors } from "./utils/formatters.js";
 import { calculateDocumentStatus } from "./utils/documentStatusCalculator.js";
 import { fetchDocumentsForPublicView } from "./api/documentApi.js";
+import { fetchAvailableDrivers } from "./api/vehicleApi.js";
 import { setupUIEventHandlers } from "./uiEventHandlers.js";
 import "./globals.js";
 
@@ -89,7 +92,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     userMailElement.innerText = currentUser.email;
   }
 
-  // Setup logout button
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
@@ -98,7 +100,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Initialize menu toggle
   setTimeout(initMenuToggle, 100);
 
   const { data: userRecord } = await client
@@ -130,6 +131,13 @@ export async function applyRoleRestrictions() {
 
   if (role === "Właściciel" || role === "Administrator") {
     showAddButtons();
+  }
+
+  const szybkieAkcje = document.getElementById("szybkieAkcje");
+  const szybkieAkcjeTitle = document.getElementById("szybkieAkcjeTitle");
+  if (role === "Kierowca" || role === "Przeglądający") {
+    if (szybkieAkcje) szybkieAkcje.style.display = "none";
+    if (szybkieAkcjeTitle) szybkieAkcjeTitle.style.display = "none";
   }
 }
 
@@ -376,10 +384,22 @@ document.addEventListener("click", async (e) => {
     const vehicle = await getVehicleDetails(id);
     if (vehicle) {
       const driverName = vehicle.KIEROWCA?.imie_nazwisko || "Brak";
+      const hasDriver = vehicle.przypisany_kierowca_id !== null;
 
       const modal = document.getElementById("detailsModal");
       if (modal) {
         modal.dataset.pojazdId = id;
+      }
+
+      let assignButton = "";
+      if (
+        !hasDriver &&
+        (currentUserRole === "Właściciel" ||
+          currentUserRole === "Administrator")
+      ) {
+        assignButton = `<button class="edytujBtn" onclick="window.assignVehicleHandler()">
+          <i class="fa-solid fa-link"></i>Przypisz kierowcę
+        </button>`;
       }
 
       openModal(`
@@ -409,6 +429,7 @@ document.addEventListener("click", async (e) => {
         <div id="przypisanyKierowcaModal" class="przypisanyKierowca">
           <h3>${driverName}</h3>
         </div>
+        ${assignButton}
         <button class="usunPojazdBtn" onclick="window.deleteVehicleHandler()">
           <i class="fa-solid fa-trash"></i>Usuń pojazd
         </button>
@@ -453,11 +474,97 @@ document.addEventListener("click", async (e) => {
       const modal = document.getElementById("detailsModal");
       if (modal) {
         modal.dataset.dokumentId = id;
+        modal.dataset.dokumentTypWlasciciela = doc.typ_wlasciciela;
+        modal.dataset.dokumentWlascicielId = doc.wlasciciel_id;
       }
 
-      const downloadLink = doc.plik_url
-        ? `<a class="pobierzPlik" href="${doc.plik_url}" target="_blank"><i class="fa-solid fa-arrow-up-from-bracket"></i>Pobierz plik</a>`
+      const resolveDocumentUrl = (plikUrl) => {
+        if (!plikUrl) return null;
+
+        if (typeof plikUrl === "string") {
+          try {
+            const parsed = JSON.parse(plikUrl);
+            if (parsed && typeof parsed === "object") {
+              plikUrl = parsed;
+            } else {
+              return plikUrl;
+            }
+          } catch (_err) {
+            return plikUrl;
+          }
+        }
+
+        if (typeof plikUrl === "object") {
+          if (typeof plikUrl.publicUrl === "string" && plikUrl.publicUrl) {
+            return plikUrl.publicUrl;
+          }
+          if (typeof plikUrl.url === "string" && plikUrl.url) {
+            return plikUrl.url;
+          }
+          if (typeof plikUrl.public_url === "string" && plikUrl.public_url) {
+            return plikUrl.public_url;
+          }
+          if (typeof plikUrl.path === "string" && plikUrl.path) {
+            return plikUrl.path;
+          }
+          const firstUrl = Object.values(plikUrl).find(
+            (value) => typeof value === "string" && value.startsWith("http"),
+          );
+          return firstUrl || null;
+        }
+
+        return null;
+      };
+
+      const fileUrl = resolveDocumentUrl(doc.plik_url);
+      const downloadLink = fileUrl
+        ? `<a class="pobierzPlik" href="${encodeURI(fileUrl)}" target="_blank" rel="noreferrer"><i class="fa-solid fa-arrow-up-from-bracket"></i>Pobierz plik</a>`
         : "";
+
+      let editButton = "";
+      const currentUser = await getCurrentUser();
+      const userRole = await getUserRole();
+
+      let canEdit = false;
+      if (userRole === "Właściciel" || userRole === "Administrator") {
+        canEdit = true;
+      } else if (userRole === "Kierowca") {
+        if (doc.typ_wlasciciela === "Kierowca") {
+          const { data: userRecord } = await client
+            .from("UZYTKOWNIK")
+            .select("kierowca_id")
+            .eq("email", currentUser.email)
+            .maybeSingle();
+
+          if (userRecord?.kierowca_id === doc.wlasciciel_id) {
+            canEdit = true;
+          }
+        } else if (doc.typ_wlasciciela === "Pojazd") {
+          const { data: userRecord } = await client
+            .from("UZYTKOWNIK")
+            .select("kierowca_id")
+            .eq("email", currentUser.email)
+            .maybeSingle();
+
+          if (userRecord?.kierowca_id) {
+            const { data: vehicles } = await client
+              .from("POJAZD")
+              .select("id")
+              .eq("przypisany_kierowca_id", userRecord.kierowca_id);
+
+            const vehicleIds = vehicles?.map((v) => v.id) || [];
+            if (vehicleIds.includes(doc.wlasciciel_id)) {
+              canEdit = true;
+            }
+          }
+        }
+      }
+
+      if (canEdit) {
+        editButton = `<button class="edytujBtn" onclick="window.editDocumentHandler()">
+          <i class="fa-solid fa-pen-to-square"></i>Edytuj
+        </button>`;
+      }
 
       openModal(`
         <div class="markaModel">
@@ -483,6 +590,7 @@ document.addEventListener("click", async (e) => {
           <h3>${ownerName}</h3>
         </div>
         ${downloadLink}
+        ${editButton}
         <button class="usunPojazdBtn" onclick="window.deleteDocumentHandler()">
           <i class="fa-solid fa-trash"></i>Usuń dokument
         </button>
@@ -493,8 +601,9 @@ document.addEventListener("click", async (e) => {
   } else if (type === "uzytkownik") {
     const user = await getUserDetails(id);
     if (user) {
+      const disableDelete = currentUserRole === "Przeglądający";
       const deleteBtn =
-        user.rola === "Właściciel"
+        user.rola === "Właściciel" || disableDelete
           ? ""
           : `<button class="usunPojazdBtn" onclick="window.deleteUserHandler()"><i class="fa-solid fa-trash"></i>Usuń użytkownika</button>`;
 
@@ -528,6 +637,8 @@ document.addEventListener("click", async (e) => {
         </div>
         ${deleteBtn}
       `);
+
+      hideDeleteButtons(currentUserRole);
     }
   }
 });
@@ -583,6 +694,12 @@ window.deleteDocumentHandler = async () => {
 };
 
 window.deleteUserHandler = async () => {
+  const role = await getUserRole();
+  if (role === "Przeglądający") {
+    showAlert(false, "Nie masz uprawnień do usuwania użytkowników.");
+    return;
+  }
+
   const modal = document.getElementById("detailsModal");
   const userId = modal?.dataset.uzytkownikId;
 
@@ -596,6 +713,146 @@ window.deleteUserHandler = async () => {
     const firmaId = await getCompanyIdForUser();
     await loadAndRenderUsers(firmaId);
   }
+};
+
+window.editDocumentHandler = async () => {
+  const modal = document.getElementById("detailsModal");
+  const documentId = modal?.dataset.dokumentId;
+
+  if (!documentId) {
+    showAlert(false, "Nie znaleziono ID dokumentu");
+    return;
+  }
+
+  const doc = await getDocumentDetails(documentId);
+  if (!doc) return;
+
+  openModal(`
+    <div class="header">
+      <p>Edytuj dokument</p>
+    </div>
+    <div class="createDokumentForm createForm">
+      <p>Nazwa dokumentu</p>
+      <input type="text" id="editDokumentNazwa" value="${doc.typ_dokumentu}" />
+      <p>Data ważności</p>
+      <input type="date" id="editDokumentDataWaznosci" value="${doc.data_waznosci}" />
+      <div class="createFormButtons">
+        <button class="acceptButton" onclick="window.saveEditedDocument()">
+          Zapisz zmiany
+        </button>
+        <button class="cancelButton" onclick="window.cancelEditDocument()">
+          Anuluj
+        </button>
+      </div>
+    </div>
+  `);
+};
+
+window.saveEditedDocument = async () => {
+  const modal = document.getElementById("detailsModal");
+  const documentId = modal?.dataset.dokumentId;
+
+  const nazwa = document.getElementById("editDokumentNazwa")?.value.trim();
+  const data = document.getElementById("editDokumentDataWaznosci")?.value;
+
+  if (
+    await handleUpdateDocument(documentId, {
+      typ_dokumentu: nazwa,
+      data_waznosci: data,
+    })
+  ) {
+    closeModal();
+    const firmaId = await getCompanyIdForUser();
+    const role = await getUserRole();
+    const { renderUpcomingDocuments } =
+      await import("./services/dashboardService.js");
+
+    if (role === "Kierowca") {
+      const { data: userRecord } = await client
+        .from("UZYTKOWNIK")
+        .select("kierowca_id")
+        .eq("email", (await getCurrentUser()).email)
+        .single();
+      if (userRecord?.kierowca_id) {
+        await loadDocumentsForDriverDashboard(userRecord.kierowca_id);
+        renderUpcomingDocuments(userRecord.kierowca_id);
+      }
+    } else {
+      await loadDocumentsForCompany(firmaId);
+      renderUpcomingDocuments();
+    }
+
+    await renderDocuments(getDocumentsCache());
+    updateDocumentDashboardTiles();
+  }
+};
+
+window.cancelEditDocument = () => {
+  closeModal();
+};
+
+window.assignVehicleHandler = async () => {
+  const modal = document.getElementById("detailsModal");
+  const vehicleId = modal?.dataset.pojazdId;
+
+  if (!vehicleId) {
+    showAlert(false, "Nie znaleziono ID pojazdu");
+    return;
+  }
+
+  const firmaId = await getCompanyIdForUser();
+  const { drivers, error } = await fetchAvailableDrivers(firmaId);
+
+  if (error || !drivers || drivers.length === 0) {
+    showAlert(false, "Brak dostępnych kierowców");
+    return;
+  }
+
+  const driverOptions = drivers
+    .map((d) => `<option value="${d.id}">${d.imie_nazwisko}</option>`)
+    .join("");
+
+  openModal(`
+    <div class="header">
+      <p>Przypisz pojazd kierowcy</p>
+    </div>
+    <div class="createDokumentForm createForm">
+      <p>Wybierz kierowcę</p>
+      <select id="selectKierowcaForVehicle">
+        <option value="">-- Wybierz kierowcę --</option>
+        ${driverOptions}
+      </select>
+      <div class="createFormButtons">
+        <button class="acceptButton" onclick="window.saveAssignedVehicle()">
+          Przypisz
+        </button>
+        <button class="cancelButton" onclick="window.cancelAssignVehicle()">
+          Anuluj
+        </button>
+      </div>
+    </div>
+  `);
+};
+
+window.saveAssignedVehicle = async () => {
+  const modal = document.getElementById("detailsModal");
+  const vehicleId = modal?.dataset.pojazdId;
+  const driverId = document.getElementById("selectKierowcaForVehicle")?.value;
+
+  if (!driverId) {
+    showAlert(false, "Wybierz kierowcę");
+    return;
+  }
+
+  if (await handleAssignVehicleToDriver(vehicleId, driverId)) {
+    closeModal();
+    const firmaId = await getCompanyIdForUser();
+    await loadAndRenderVehicles(firmaId);
+  }
+};
+
+window.cancelAssignVehicle = () => {
+  closeModal();
 };
 
 document.addEventListener("click", async (e) => {

@@ -13,6 +13,7 @@ import {
   fetchDocumentsForPublicView,
   fetchVehiclesForPublicView,
   fetchDriversForPublicView,
+  updateDocument,
 } from "../api/documentApi.js";
 import { fetchVehiclesForDriver } from "../api/vehicleApi.js";
 import { showAlert } from "../ui/alertService.js";
@@ -20,6 +21,7 @@ import { calculateDocumentStatus } from "../utils/documentStatusCalculator.js";
 import { getStatusLabel, getStatusColors } from "../utils/formatters.js";
 import { validateDocumentDate } from "../utils/validators.js";
 import { can } from "../auth/permissionService.js";
+import { client } from "../api/supabase.js";
 
 let dokumentyCache = [];
 
@@ -246,7 +248,7 @@ export async function handleAddDocument(documentFormData, firmaId) {
       return false;
     }
 
-    fileUrl = getDocumentFileUrl(filePath);
+    fileUrl = await getDocumentFileUrl(filePath);
   }
 
   const status = calculateDocumentStatus(dataWaznosci);
@@ -266,7 +268,6 @@ export async function handleAddDocument(documentFormData, firmaId) {
     return false;
   }
 
-  // 🔥 ZAMIAST DODAWAĆ RĘCZNIE → PRZEŁADUJEMY DANE
   await loadDocumentsForCompany(firmaId);
 
   updateDocumentDashboardTiles();
@@ -281,6 +282,11 @@ export async function handleAddDocument(documentFormData, firmaId) {
 }
 
 export async function handleDeleteDocument(documentId) {
+  if (!(await can("canManageDocuments"))) {
+    showAlert(false, "Nie masz uprawnień do usuwania dokumentów");
+    return false;
+  }
+
   const { error } = await deleteDocument(documentId);
 
   if (error) {
@@ -308,6 +314,16 @@ export async function fetchDocumentOwnerName(document) {
     const { name } = await fetchVehicleNameForDocument(document.wlasciciel_id);
     return name;
   } else if (document.typ_wlasciciela === "Kierowca") {
+    const { data: user, error } = await client
+      .from("UZYTKOWNIK")
+      .select("imie, nazwisko")
+      .eq("kierowca_id", document.wlasciciel_id)
+      .maybeSingle();
+
+    if (!error && user && user.imie && user.nazwisko) {
+      return `${user.imie} ${user.nazwisko}`;
+    }
+
     const { name } = await fetchDriverNameForDocument(document.wlasciciel_id);
     return name;
   } else if (document.typ_wlasciciela === "Firma") {
@@ -316,4 +332,50 @@ export async function fetchDocumentOwnerName(document) {
   }
 
   return "Brak";
+}
+
+export async function handleUpdateDocument(documentId, updateData) {
+  if (!documentId) {
+    showAlert(false, "Brak ID dokumentu");
+    return false;
+  }
+
+  const { typ_dokumentu, data_waznosci } = updateData;
+
+  if (!typ_dokumentu || !typ_dokumentu.trim()) {
+    showAlert(false, "Podaj nazwę dokumentu");
+    return false;
+  }
+
+  if (!data_waznosci) {
+    showAlert(false, "Podaj datę ważności");
+    return false;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (!validateDocumentDate(data_waznosci, today)) {
+    showAlert(false, "Data ważności nie może być starsza niż dzisiaj");
+    return false;
+  }
+
+  const newStatus = calculateDocumentStatus(data_waznosci);
+
+  const { error } = await updateDocument(documentId, {
+    typ_dokumentu: typ_dokumentu.trim(),
+    data_waznosci,
+    status: newStatus,
+  });
+
+  if (error) {
+    console.error("Błąd aktualizacji dokumentu:", error);
+    showAlert(false, "Nie udało się zaktualizować dokumentu");
+    return false;
+  }
+
+  const { getCompanyIdForUser } = await import("../auth/authService.js");
+  const firmaId = await getCompanyIdForUser();
+  await loadDocumentsForCompany(firmaId);
+  showAlert(true, "Dokument został zaktualizowany");
+  return true;
 }

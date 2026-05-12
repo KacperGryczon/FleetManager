@@ -49,3 +49,9 @@ export async function fetchAvailableDrivers(firmaId) {
 
   return { drivers, error };
 }
+
+export async function updateVehicle(id, updateData) {
+  const { error } = await client.from("POJAZD").update(updateData).eq("id", id);
+
+  return { error };
+}

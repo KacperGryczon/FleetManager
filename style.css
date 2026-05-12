@@ -14,14 +14,10 @@ body.register {
   background-color: #f7f7f7;
   padding-inline: 20px;
 }
-.icon-box {
-  background-color: rgb(37, 88, 243);
-  padding: 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
+
+img {
+  border-radius: 24px;
+  width: 150px;
 }
 
 body.login i,

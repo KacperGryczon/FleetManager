@@ -37,13 +37,10 @@ window.createFirmaFromForm = async function () {
   const email = document.getElementById("firmaAdres")?.value.trim();
 
   if (await handleCreateCompany(nazwa, email)) {
-    // Czekaj aby baza danych zsynchronizowała się
     await new Promise((r) => setTimeout(r, 500));
 
-    // Wymuś pobranie świeżych danych z bazy
     await applyRoleRestrictions();
 
-    // Pokaż dashboard
     showView("viewDashboard", "Pulpit", loadDashboardData);
   }
 };
@@ -54,6 +51,16 @@ window.cancelCreateFirmaFromForm = async function () {
 
 window.dodajPojazdFromForm = async function () {
   const firmaId = await getCompanyIdForUser();
+
+  console.log("dodajPojazdFromForm: firmaId =", firmaId);
+
+  if (!firmaId) {
+    showAlert(
+      false,
+      "Nie znaleziono firmy. Nie masz przypisanej firmy lub brakuje dostępu.",
+    );
+    return;
+  }
 
   const vehicleData = {
     typ: document.getElementById("selectTypPojazdu")?.value.trim() || "",
@@ -74,6 +81,13 @@ window.dodajPojazdFromForm = async function () {
     showAlert(false, "Wybierz typ pojazdu");
     return;
   }
+
+  console.log(
+    "dodajPojazdFromForm: Wysyłanie danych:",
+    vehicleData,
+    "dla firmy:",
+    firmaId,
+  );
 
   if (await handleAddVehicle(vehicleData, firmaId)) {
     showView("viewPojazdy", "Pojazdy");
@@ -176,6 +190,8 @@ window.acceptZmianyUser = async function () {
   const telefon = document.getElementById("userTelefon")?.value.trim() || "";
 
   if (await handleUpdateUserProfile(imie, nazwisko, telefon)) {
+    const { loadDashboardData } = await import("./main.js");
+    await loadDashboardData();
     showView("viewDashboard", "Pulpit");
   }
 };

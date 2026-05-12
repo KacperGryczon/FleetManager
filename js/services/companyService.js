@@ -49,7 +49,6 @@ export async function handleCreateCompany(companyName, companyEmail) {
     return false;
   }
 
-  // Pobranie obecnego wpisu użytkownika
   const { data: userRecord, error: getUserError } = await client
     .from("UZYTKOWNIK")
     .select("*")
@@ -60,7 +59,6 @@ export async function handleCreateCompany(companyName, companyEmail) {
     console.error("Błąd pobierania danych użytkownika:", getUserError);
   }
 
-  // Jeśli wpis nie istnieje, go tworzymy
   if (!userRecord) {
     const { error: insertError } = await client.from("UZYTKOWNIK").insert({
       auth_id: currentUser.id,
@@ -76,7 +74,6 @@ export async function handleCreateCompany(companyName, companyEmail) {
       return false;
     }
   } else {
-    // Jeśli wpis istnieje, go aktualizujemy
     const { error: updateError } = await client
       .from("UZYTKOWNIK")
       .update({ firma_id: firma.id })

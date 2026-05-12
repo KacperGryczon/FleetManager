@@ -88,12 +88,23 @@ export async function uploadDocumentFile(filePath, file) {
 }
 
 export async function getDocumentFileUrl(filePath) {
-  const { data } = client.storage.from("dokumenty").getPublicUrl(filePath);
+  const { data } = await client.storage
+    .from("dokumenty")
+    .getPublicUrl(filePath);
   return data?.publicUrl || null;
 }
 
 export async function deleteDocument(id) {
   const { error } = await client.from("DOKUMENT").delete().eq("id", id);
+  return { error };
+}
+
+export async function updateDocument(id, updateData) {
+  const { error } = await client
+    .from("DOKUMENT")
+    .update(updateData)
+    .eq("id", id);
+
   return { error };
 }
 
