@@ -359,6 +359,52 @@ export async function handleUpdateDocument(documentId, updateData) {
     return false;
   }
 
+  const userRole = await (await import("../auth/authService.js")).getUserRole();
+  const currentUser = await (
+    await import("../auth/authService.js")
+  ).getCurrentUser();
+  const doc = await getDocumentDetails(documentId);
+
+  if (!doc) {
+    showAlert(false, "Nie znaleziono dokumentu");
+    return false;
+  }
+
+  if (userRole === "Kierowca") {
+    const { data: userRecord } = await client
+      .from("UZYTKOWNIK")
+      .select("kierowca_id")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+
+    let driverCanEdit = false;
+
+    if (
+      doc.typ_wlasciciela === "Kierowca" &&
+      userRecord?.kierowca_id === doc.wlasciciel_id
+    ) {
+      driverCanEdit = true;
+    } else if (doc.typ_wlasciciela === "Pojazd" && userRecord?.kierowca_id) {
+      const { data: vehicles } = await client
+        .from("POJAZD")
+        .select("id")
+        .eq("przypisany_kierowca_id", userRecord.kierowca_id);
+
+      const vehicleIds = vehicles?.map((v) => v.id) || [];
+      if (vehicleIds.includes(doc.wlasciciel_id)) {
+        driverCanEdit = true;
+      }
+    }
+
+    if (!driverCanEdit) {
+      showAlert(false, "Nie masz uprawnień do edycji tego dokumentu");
+      return false;
+    }
+  } else if (userRole === "Przeglądający") {
+    showAlert(false, "Nie masz uprawnień do edycji dokumentów");
+    return false;
+  }
+
   const newStatus = calculateDocumentStatus(data_waznosci);
 
   const { error } = await updateDocument(documentId, {

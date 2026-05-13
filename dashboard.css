@@ -488,7 +488,8 @@ select {
 #userImie,
 #userNazwisko,
 #przypisanyKierowcaModal,
-.danePojazduTile h3 {
+.danePojazduTile h3,
+.info p {
   text-transform: capitalize;
 }
 

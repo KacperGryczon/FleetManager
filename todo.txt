@@ -67,11 +67,11 @@ trzeba będzie to zrobić w nowym repo na githubie i ukryć .env i node_modules 
 tylko że w dokumentach zmienia się data, a nie aktualizuje się status, i dalej wyświetla się jako "wkrótce wygasa" i nie aktualizują się dane w dashboardzie. Jeszcze popraw dodatkową rzeczy bo w dashobrdzie kierowcy w "nadchodzące terminy" wyświetlają się tylko dokumenty przypisane do tego kierowcy, a nie wyświetlają się dokumenty przypisane do jego pojazdów
 
 
-dalej nie naprawił tego że jak zmieniam imię i nazwisko użytkownika to i tak się nie zmienia w tabeli kierowca
-dalej nie naprawił że dokumenty się nie chcą pobierać
-dalej nie naprawił że kierowca może edytować dokumenty
+*dalej nie naprawił że dokumenty się nie chcą pobierać
+*musi naprawić żeby przeglądający nie mógł usuwać użytkowników jak kliknie w ich szczegóły 
 
-musi naprawić żeby przeglądający nie mógł usuwać użytkowników jak kliknie w ich szczegóły 
+dalej nie naprawił tego że jak zmieniam imię i nazwisko użytkownika to i tak się nie zmienia w tabeli kierowca
+dalej nie naprawił że kierowca może edytować dokumenty
 musi naprawić bo użytkownikowi administratorowi nie może zmodyfikować żadnych danych, oprócz użytkowników i ustawień własnego profilu
 ale naprawił to pole emaila w dodawaniu użytkownika
 
@@ -104,3 +104,7 @@ managing drivers
 managing documents
 
 managing company settings.
+
+
+
+Downloading URL files works, kierowca name on documents works, "przeglądający" user can't delete users. But there is also one bug in "przeglądający" user profile. The company data doesn't display properly in users modal "szczegóły". what also doesn't work is: driver still can't change the data of the documents, well he can but the data isn't updated in the database, and the "administrator" user still can't do anything other than magnaging users there are some errors in the console on the screen. Deeply analyze whole code, and check for bugs, and i will correct you before u do anything, thing that u change in #file:permissionService.js in "administrator" doesn't help

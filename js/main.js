@@ -5,7 +5,7 @@ import {
   getUserRole,
   getCompanyIdForUser,
 } from "./auth/authService.js";
-import { getMenuVisibility } from "./auth/permissionService.js";
+import { getMenuVisibility, can } from "./auth/permissionService.js";
 import {
   showView,
   initMenuToggle,
@@ -518,7 +518,7 @@ document.addEventListener("click", async (e) => {
 
       const fileUrl = resolveDocumentUrl(doc.plik_url);
       const downloadLink = fileUrl
-        ? `<a class="pobierzPlik" href="${encodeURI(fileUrl)}" target="_blank" rel="noreferrer"><i class="fa-solid fa-arrow-up-from-bracket"></i>Pobierz plik</a>`
+        ? `<a class="pobierzPlik" href="${fileUrl}" target="_blank" rel="noreferrer" download><i class="fa-solid fa-arrow-up-from-bracket"></i>Pobierz plik</a>`
         : "";
 
       let editButton = "";
@@ -601,11 +601,16 @@ document.addEventListener("click", async (e) => {
   } else if (type === "uzytkownik") {
     const user = await getUserDetails(id);
     if (user) {
-      const disableDelete = currentUserRole === "Przeglądający";
-      const deleteBtn =
-        user.rola === "Właściciel" || disableDelete
-          ? ""
-          : `<button class="usunPojazdBtn" onclick="window.deleteUserHandler()"><i class="fa-solid fa-trash"></i>Usuń użytkownika</button>`;
+      const disableDelete =
+        currentUserRole === "Przeglądający" || user.rola === "Właściciel";
+      const deleteBtn = disableDelete
+        ? ""
+        : `<button class="usunPojazdBtn" onclick="window.deleteUserHandler()"><i class="fa-solid fa-trash"></i>Usuń użytkownika</button>`;
+
+      let editButton = "";
+      if (!disableDelete && currentUserRole !== "Kierowca") {
+        editButton = `<button class="edytujBtn" onclick="window.editUserHandler()"><i class="fa-solid fa-pen-to-square"></i>Edytuj</button>`;
+      }
 
       const modal = document.getElementById("detailsModal");
       if (modal) {
@@ -633,8 +638,14 @@ document.addEventListener("click", async (e) => {
         </div>
         <p class="przypisanyKierowcaP">Firma</p>
         <div class="przypisanyKierowca">
-          <h3>${user.FIRMA?.nazwa || "Brak"}</h3>
+          <h3>${
+            Array.isArray(user.FIRMA)
+              ? user.FIRMA[0]?.nazwa || "Brak"
+              : user.FIRMA?.nazwa || "Brak"
+          }</h3>
+
         </div>
+        ${editButton}
         ${deleteBtn}
       `);
 
@@ -700,6 +711,11 @@ window.deleteUserHandler = async () => {
     return;
   }
 
+  if (!(await can("canManageUsers"))) {
+    showAlert(false, "Nie masz uprawnień do usuwania użytkowników.");
+    return;
+  }
+
   const modal = document.getElementById("detailsModal");
   const userId = modal?.dataset.uzytkownikId;
 
@@ -713,6 +729,67 @@ window.deleteUserHandler = async () => {
     const firmaId = await getCompanyIdForUser();
     await loadAndRenderUsers(firmaId);
   }
+};
+
+window.editUserHandler = async () => {
+  const modal = document.getElementById("detailsModal");
+  const userId = modal?.dataset.uzytkownikId;
+
+  if (!userId) {
+    showAlert(false, "Nie znaleziono ID użytkownika");
+    return;
+  }
+
+  const user = await getUserDetails(userId);
+  if (!user) return;
+
+  openModal(`
+    <div class="header">
+      <p>Edytuj użytkownika</p>
+    </div>
+    <div class="createDokumentForm createForm">
+      <p>Imię</p>
+      <input type="text" id="editUserImie" value="${user.imie || ""}" />
+      <p>Nazwisko</p>
+      <input type="text" id="editUserNazwisko" value="${user.nazwisko || ""}" />
+      <p>Telefon</p>
+      <input type="text" id="editUserTelefon" value="${user.telefon || ""}" />
+      <div class="createFormButtons">
+        <button class="acceptButton" onclick="window.saveEditedUser()">
+          Zapisz zmiany
+        </button>
+        <button class="cancelButton" onclick="window.cancelEditUser()">
+          Anuluj
+        </button>
+      </div>
+    </div>
+  `);
+};
+
+window.saveEditedUser = async () => {
+  const modal = document.getElementById("detailsModal");
+  const userId = modal?.dataset.uzytkownikId;
+
+  const imie = document.getElementById("editUserImie")?.value.trim();
+  const nazwisko = document.getElementById("editUserNazwisko")?.value.trim();
+  const telefon = document.getElementById("editUserTelefon")?.value.trim();
+
+  if (!imie || !nazwisko) {
+    showAlert(false, "Imię i nazwisko są wymagane");
+    return;
+  }
+
+  const { handleUpdateUserFromAdmin } =
+    await import("./services/userService.js");
+  if (await handleUpdateUserFromAdmin(userId, imie, nazwisko, telefon)) {
+    closeModal();
+    const firmaId = await getCompanyIdForUser();
+    await loadAndRenderUsers(firmaId);
+  }
+};
+
+window.cancelEditUser = () => {
+  closeModal();
 };
 
 window.editDocumentHandler = async () => {

@@ -270,6 +270,63 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
   return true;
 }
 
+export async function handleUpdateUserFromAdmin(
+  userId,
+  imie,
+  nazwisko,
+  telefon,
+) {
+  if (!(await can("canManageUsers"))) {
+    showAlert(false, "Nie masz uprawnień do edycji użytkownika");
+    return false;
+  }
+
+  const { error: updateError } = await updateUser(userId, {
+    imie,
+    nazwisko,
+    telefon,
+  });
+
+  if (updateError) {
+    showAlert(false, "Błąd aktualizacji użytkownika");
+    return false;
+  }
+
+  const { data: userRecord, error: userLookupError } = await client
+    .from("UZYTKOWNIK")
+    .select("kierowca_id")
+    .eq("id", userId)
+    .single();
+
+  if (userLookupError) {
+    console.error("Error looking up user:", userLookupError);
+    showAlert(
+      true,
+      "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany",
+    );
+    return true;
+  }
+
+  if (userRecord?.kierowca_id) {
+    const { error: driverError } = await updateDriver(userRecord.kierowca_id, {
+      imie_nazwisko: `${imie} ${nazwisko}`,
+      telefon,
+    });
+
+    if (driverError) {
+      console.error("Driver update error:", driverError);
+      showAlert(
+        true,
+        "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany",
+      );
+      return true;
+    }
+  }
+
+  showAlert(true, "Użytkownik został zaktualizowany");
+  return true;
+}
+
 export async function handleChangePassword(
   currentPassword,
   newPassword,

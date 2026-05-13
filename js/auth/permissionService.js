@@ -10,7 +10,7 @@ const PERMISSIONS = {
     canViewOwn: true,
   },
   Administrator: {
-    canManageFleet: true,
+    canManageFleet: false,
     canManageDrivers: true,
     canManageDocuments: true,
     canManageUsers: true,
