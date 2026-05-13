@@ -1,23 +1,10 @@
 import { showAlert } from "./ui/alertService.js";
 import { showView } from "./ui/menuService.js";
-import {
-  getCompanyIdForUser,
-  getCurrentUser,
-  getUserRole,
-} from "./auth/authService.js";
+import { getCompanyIdForUser, getCurrentUser, getUserRole } from "./auth/authService.js";
 import { loadDashboardData, applyRoleRestrictions } from "./main.js";
-import {
-  handleCreateCompany,
-  handleUpdateCompanySettings,
-} from "./services/companyService.js";
-import {
-  handleAddVehicle,
-  loadAndRenderVehicles,
-} from "./services/vehicleService.js";
-import {
-  handleAddDriver,
-  loadAndRenderDrivers,
-} from "./services/driverService.js";
+import { handleCreateCompany, handleUpdateCompanySettings } from "./services/companyService.js";
+import { handleAddVehicle, loadAndRenderVehicles } from "./services/vehicleService.js";
+import { handleAddDriver, loadAndRenderDrivers } from "./services/driverService.js";
 import {
   handleAddDocument,
   loadDocumentsForCompany,
@@ -55,23 +42,16 @@ window.dodajPojazdFromForm = async function () {
   console.log("dodajPojazdFromForm: firmaId =", firmaId);
 
   if (!firmaId) {
-    showAlert(
-      false,
-      "Nie znaleziono firmy. Nie masz przypisanej firmy lub brakuje dostępu.",
-    );
+    showAlert(false, "Nie znaleziono firmy. Nie masz przypisanej firmy lub brakuje dostępu.");
     return;
   }
 
   const vehicleData = {
     typ: document.getElementById("selectTypPojazdu")?.value.trim() || "",
-    numer_rejestracyjny:
-      document.getElementById("pojazdNumerRejestracyjny")?.value.trim() || "",
+    numer_rejestracyjny: document.getElementById("pojazdNumerRejestracyjny")?.value.trim() || "",
     marka: document.getElementById("pojazdMarka")?.value.trim() || "",
     model: document.getElementById("pojazdModel")?.value.trim() || "",
-    rok_produkcji: parseInt(
-      document.getElementById("pojazdRokProdukcji")?.value.trim() || "0",
-      10,
-    ),
+    rok_produkcji: parseInt(document.getElementById("pojazdRokProdukcji")?.value.trim() || "0", 10),
     vin: document.getElementById("pojazdNumerVIN")?.value.trim() || "",
     przypisany_kierowca_id:
       document.getElementById("PojazdPrzypisanyKierowca")?.value.trim() || null,
@@ -82,12 +62,7 @@ window.dodajPojazdFromForm = async function () {
     return;
   }
 
-  console.log(
-    "dodajPojazdFromForm: Wysyłanie danych:",
-    vehicleData,
-    "dla firmy:",
-    firmaId,
-  );
+  console.log("dodajPojazdFromForm: Wysyłanie danych:", vehicleData, "dla firmy:", firmaId);
 
   if (await handleAddVehicle(vehicleData, firmaId)) {
     showView("viewPojazdy", "Pojazdy");
@@ -135,8 +110,7 @@ window.dodajDokumentFromForm = async function () {
   const documentData = {
     nazwa: document.getElementById("dokumentNazwa")?.value.trim() || "",
     dataWaznosci: document.getElementById("dokumentDataWaznosci")?.value || "",
-    typPrzypisania:
-      document.getElementById("dokumentTypPrzypisania")?.value || "Pojazd",
+    typPrzypisania: document.getElementById("dokumentTypPrzypisania")?.value || "Pojazd",
     file: document.getElementById("fileInput")?.files[0] || null,
     wlascicielId: document.getElementById("dokumentWlascicielId")?.value || "",
   };
@@ -201,16 +175,11 @@ window.cancelZmianyUser = async function () {
 };
 
 window.acceptZmianyHasla = async function () {
-  const currentPassword =
-    document.getElementById("userHaslo")?.value.trim() || "";
-  const newPassword =
-    document.getElementById("userNoweHaslo")?.value.trim() || "";
-  const newPasswordConfirm =
-    document.getElementById("userNoweHasloPowtorz")?.value.trim() || "";
+  const currentPassword = document.getElementById("userHaslo")?.value.trim() || "";
+  const newPassword = document.getElementById("userNoweHaslo")?.value.trim() || "";
+  const newPasswordConfirm = document.getElementById("userNoweHasloPowtorz")?.value.trim() || "";
 
-  if (
-    await handleChangePassword(currentPassword, newPassword, newPasswordConfirm)
-  ) {
+  if (await handleChangePassword(currentPassword, newPassword, newPasswordConfirm)) {
     showView("viewDashboard", "Pulpit");
 
     document.getElementById("userHaslo").value = "";
@@ -226,8 +195,7 @@ window.acceptZmianyFirmy = async function () {
     adres: document.getElementById("firmaDaneAdres")?.value.trim() || "",
     nip: document.getElementById("firmaNIP")?.value.trim() || "",
     regon: document.getElementById("firmaREGON")?.value.trim() || "",
-    numer_licencji:
-      document.getElementById("firmaNumerLicencji")?.value.trim() || "",
+    numer_licencji: document.getElementById("firmaNumerLicencji")?.value.trim() || "",
   };
 
   if (await handleUpdateCompanySettings(companyData)) {

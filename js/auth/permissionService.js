@@ -10,7 +10,7 @@ const PERMISSIONS = {
     canViewOwn: true,
   },
   Administrator: {
-    canManageFleet: false,
+    canManageFleet: true,
     canManageDrivers: true,
     canManageDocuments: true,
     canManageUsers: true,
@@ -42,12 +42,7 @@ export async function can(action) {
 
 export function getBlockedViews(role) {
   const viewRestrictions = {
-    Kierowca: [
-      "viewPojazdy",
-      "viewDodajPojazd",
-      "viewUżytkownicy",
-      "viewUstawieniaFirmy",
-    ],
+    Kierowca: ["viewPojazdy", "viewDodajPojazd", "viewUżytkownicy", "viewUstawieniaFirmy"],
     Przeglądający: [
       "viewDodajPojazd",
       "viewDodajKierowce",
@@ -87,12 +82,7 @@ export function getMenuVisibility(role) {
       "viewUżytkownicy",
       "viewUstawieniaProfilu",
     ],
-    Kierowca: [
-      "viewDashboard",
-      "viewMojePojazdy",
-      "viewMojeDokumenty",
-      "viewUstawieniaProfilu",
-    ],
+    Kierowca: ["viewDashboard", "viewMojePojazdy", "viewMojeDokumenty", "viewUstawieniaProfilu"],
   };
 
   return menuMap[role] || [];

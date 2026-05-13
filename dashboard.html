@@ -2,14 +2,11 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>FleetManager</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="js/main.js" defer></script>
-    <script
-      src="https://kit.fontawesome.com/1017934682.js"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://kit.fontawesome.com/1017934682.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="dashboard.css" />
     <link rel="icon" type="image/png" href="/image/logo.png" />
   </head>
@@ -19,7 +16,7 @@
     <div id="menuBar">
       <div class="icon-box">
         <div class="icon-content">
-          <img src="/image/logo.png" alt="logo">
+          <img src="/image/logo.png" alt="logo" />
           <div class="name-box">
             <h2>FleetManager</h2>
             <p>Zarządzanie flotą</p>
@@ -51,11 +48,7 @@
           <i class="fa-solid fa-file-circle-check"></i>
           <p>Dokumenty</p>
         </li>
-        <li
-          class="viewButton menuButton"
-          data-view="viewUżytkownicy"
-          data-title="Użytkownicy"
-        >
+        <li class="viewButton menuButton" data-view="viewUżytkownicy" data-title="Użytkownicy">
           <i class="fa-solid fa-users-gear"></i>
           <p>Użytkownicy</p>
         </li>
@@ -110,10 +103,7 @@
           <div class="create-company-container">
             <div class="create-company-box">
               <h2>Dodaj firmę</h2>
-              <p>
-                Aby korzystać z wszystkich funkcji FleetManager, dodaj swoją
-                firmę.
-              </p>
+              <p>Aby korzystać z wszystkich funkcji FleetManager, dodaj swoją firmę.</p>
 
               <div
                 class="add-company-btn"
@@ -133,19 +123,12 @@
           <div class="createFirmaForm createForm">
             <h3>Dane firmy</h3>
             <p>Nazwa firmy</p>
-            <input type="text" id="firmaNazwa"/>
+            <input type="text" id="firmaNazwa" />
             <p>Email firmy</p>
-            <input type="email" id="firmaAdres"/>
+            <input type="email" id="firmaAdres" />
             <div class="createFormButtons">
-              <button class="acceptButton" onclick="createFirmaFromForm()">
-                Akceptuj
-              </button>
-              <button
-                class="cancelButton"
-                onclick="cancelCreateFirmaFromForm()"
-              >
-                Anuluj
-              </button>
+              <button class="acceptButton" onclick="createFirmaFromForm()">Akceptuj</button>
+              <button class="cancelButton" onclick="cancelCreateFirmaFromForm()">Anuluj</button>
             </div>
           </div>
         </div>
@@ -188,33 +171,21 @@
           </div>
           <h3 id="szybkieAkcjeTitle">Szybkie akcje</h3>
           <div class="szybkieAkcje" id="szybkieAkcje">
-            <div
-              class="tile"
-              data-view="viewDodajPojazd"
-              data-title="Dodaj pojazd"
-            >
+            <div class="tile" data-view="viewDodajPojazd" data-title="Dodaj pojazd">
               <div class="tileIcon">
                 <i class="fa-solid fa-plus"></i>
               </div>
               <h3>Dodaj pojazd</h3>
               <p>Zarejestruj nowy pojazd we flocie</p>
             </div>
-            <div
-              class="tile"
-              data-view="viewDodajKierowcę"
-              data-title="Dodaj kierowcę"
-            >
+            <div class="tile" data-view="viewDodajKierowcę" data-title="Dodaj kierowcę">
               <div class="tileIcon">
                 <i class="fa-solid fa-plus"></i>
               </div>
               <h3>Dodaj kierowcę</h3>
               <p>Dodaj nowego kierowcę do zespołu</p>
             </div>
-            <div
-              class="tile"
-              data-view="viewDodajDokument"
-              data-title="Dodaj dokument"
-            >
+            <div class="tile" data-view="viewDodajDokument" data-title="Dodaj dokument">
               <div class="tileIcon">
                 <i class="fa-solid fa-plus"></i>
               </div>
@@ -262,52 +233,30 @@
               <option value="Naczepa">Naczepa</option>
             </select>
             <p>Numer rejestracyjny</p>
-            <input
-              type="text"
-              id="pojazdNumerRejestracyjny"
-            />
+            <input type="text" id="pojazdNumerRejestracyjny" />
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Marka</p>
-                <input type="text" id="pojazdMarka" maxlength="30"  />
+                <input type="text" id="pojazdMarka" maxlength="30" />
               </div>
               <div class="halfScreenInput">
                 <p>Model</p>
-                <input type="text" id="pojazdModel" maxlength="30"  />
+                <input type="text" id="pojazdModel" maxlength="30" />
               </div>
               <div class="halfScreenInput">
                 <p>Rok produkcji</p>
-                <input
-                  type="number"
-                  id="pojazdRokProdukcji"
-                  min="1900"
-                />
+                <input type="number" id="pojazdRokProdukcji" min="1900" />
               </div>
               <div class="halfScreenInput">
                 <p>Numer VIN</p>
-                <input
-                  type="text"
-                  id="pojazdNumerVIN"
-                  maxlength="17"
-
-                />
+                <input type="text" id="pojazdNumerVIN" maxlength="17" />
               </div>
             </div>
             <p>Przypisany kierowca (opcjonalnie)</p>
-            <select
-              aria-placeholder="Brak przypisania"
-              id="PojazdPrzypisanyKierowca"
-            ></select>
+            <select aria-placeholder="Brak przypisania" id="PojazdPrzypisanyKierowca"></select>
             <div class="createFormButtons">
-              <button class="acceptButton" onclick="dodajPojazdFromForm()">
-                Dodaj pojazd
-              </button>
-              <button
-                class="cancelButton"
-                onclick="cancelCreatePojazdFromForm()"
-              >
-                Anuluj
-              </button>
+              <button class="acceptButton" onclick="dodajPojazdFromForm()">Dodaj pojazd</button>
+              <button class="cancelButton" onclick="cancelCreatePojazdFromForm()">Anuluj</button>
             </div>
           </div>
         </div>
@@ -347,7 +296,7 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>Imię</p>
-                <input type="text" id="kierowcaImie" maxlength="30"/>
+                <input type="text" id="kierowcaImie" maxlength="30" />
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
@@ -366,21 +315,10 @@
               autocomplete="off"
             />
             <p>E-mail</p>
-            <input
-              type="email"
-              id="kierowcaMail"
-              maxlength="50"
-            />
+            <input type="email" id="kierowcaMail" maxlength="50" />
             <div class="createFormButtons">
-              <button class="acceptButton" onclick="dodajKierowcęFromForm()">
-                Dodaj kierowcę
-              </button>
-              <button
-                class="cancelButton"
-                onclick="cancelCreateKierowcęFromForm()"
-              >
-                Anuluj
-              </button>
+              <button class="acceptButton" onclick="dodajKierowcęFromForm()">Dodaj kierowcę</button>
+              <button class="cancelButton" onclick="cancelCreateKierowcęFromForm()">Anuluj</button>
             </div>
           </div>
         </div>
@@ -436,17 +374,9 @@
           <div class="createDokumentForm createForm">
             <h3>Dane dokumentu</h3>
             <p>Nazwa dokumentu</p>
-            <input
-              type="text"
-              id="dokumentNazwa"
-              maxlength="50"
-            />
+            <input type="text" id="dokumentNazwa" maxlength="50" />
             <p>Data ważności</p>
-            <input
-              type="date"
-              id="dokumentDataWaznosci"
-              placeholder="dd.mm.rrrr"
-            />
+            <input type="date" id="dokumentDataWaznosci" placeholder="dd.mm.rrrr" />
             <p>Typ przypisania</p>
             <select id="dokumentTypPrzypisania">
               <option value="Firma">Firma</option>
@@ -459,12 +389,7 @@
             </div>
 
             <div class="file-upload" id="fileUpload">
-              <input
-                type="file"
-                id="fileInput"
-                accept=".pdf,.jpg,.png"
-                hidden
-              />
+              <input type="file" id="fileInput" accept=".pdf,.jpg,.png" hidden />
               <div class="upload-box">
                 <i class="fa-solid fa-arrow-up-from-bracket"></i>
                 <p>Kliknij, aby wybrać plik lub przeciągnij go tutaj</p>
@@ -473,15 +398,8 @@
             </div>
 
             <div class="createFormButtons">
-              <button class="acceptButton" onclick="dodajDokumentFromForm()">
-                Dodaj dokument
-              </button>
-              <button
-                class="cancelButton"
-                onclick="cancelCreateDokumentFromForm()"
-              >
-                Anuluj
-              </button>
+              <button class="acceptButton" onclick="dodajDokumentFromForm()">Dodaj dokument</button>
+              <button class="cancelButton" onclick="cancelCreateDokumentFromForm()">Anuluj</button>
             </div>
           </div>
         </div>
@@ -511,16 +429,12 @@
           </div>
           <div class="pojazdy">
             <h3 class="roleWSys">Role w systemie</h3>
+            <p class="role"><span>Właściciel:</span>Pełny dostęp do wszystkich funkcji</p>
             <p class="role">
-              <span>Właściciel:</span>Pełny dostęp do wszystkich funkcji
+              <span>Administrator:</span>Zarządzanie flotą, kierowcami i dokumentami
             </p>
             <p class="role">
-              <span>Administrator:</span>Zarządzanie flotą, kierowcami i
-              dokumentami
-            </p>
-            <p class="role">
-              <span>Kierowca:</span>Dostęp do swoich dokumentów i przypisanego
-              pojazdu
+              <span>Kierowca:</span>Dostęp do swoich dokumentów i przypisanego pojazdu
             </p>
             <p class="role"><span>Przeglądający:</span>Tylko odczyt danych</p>
           </div>
@@ -544,7 +458,7 @@
               <option value="Kierowca">Kierowca</option>
               <option value="Administrator">Administrator</option>
             </select>
-            <div id="kierowcaSelectWrapper" style="display:none;">
+            <div id="kierowcaSelectWrapper" style="display: none">
               <p>Powiązany kierowca</p>
               <select id="selectKierowca">
                 <option value="">Wybierz kierowcę</option>
@@ -557,32 +471,29 @@
 
             <div class="createFormGrid" id="kierowcaDane">
               <div class="halfScreenInput">
-                <div id="imieWrapper" style="display:none;">
+                <div id="imieWrapper" style="display: none">
                   <p>Imię</p>
                   <input type="text" id="użytkownikImie" readonly />
                 </div>
               </div>
               <div class="halfScreenInput">
-                <div id="nazwiskoWrapper" style="display:none;">
+                <div id="nazwiskoWrapper" style="display: none">
                   <p>Nazwisko</p>
                   <input type="text" id="użytkownikNazwisko" readonly />
                 </div>
               </div>
             </div>
             <p>Tymczasowe hasło</p>
-            <input type="password" id="użytkownikHaslo"/>
+            <input type="password" id="użytkownikHaslo" />
             <div class="info">
-              <span>Uwaga:</span>Użytkownik powinien zmienić hasło po
-              zalogowaniu się na swoje konto.
+              <span>Uwaga:</span>Użytkownik powinien zmienić hasło po zalogowaniu się na swoje
+              konto.
             </div>
             <div class="createFormButtons">
               <button class="acceptButton" onclick="dodajUżytkownikaFromForm()">
                 Dodaj użytkownika
               </button>
-              <button
-                class="cancelButton"
-                onclick="cancelCreateUżytkownikaFromForm()"
-              >
+              <button class="cancelButton" onclick="cancelCreateUżytkownikaFromForm()">
                 Anuluj
               </button>
             </div>
@@ -595,15 +506,9 @@
           <div class="createPojazdForm createForm">
             <h3>Dane firmy</h3>
             <p>Nazwa firmy</p>
-            <input
-              type="text"
-              id="firmaDaneNazwa"
-            />
+            <input type="text" id="firmaDaneNazwa" />
             <p>E-mail firmy</p>
-            <input
-              type="email"
-              id="firmaMail"
-            />
+            <input type="email" id="firmaMail" />
             <p>Adres</p>
             <input
               type="text"
@@ -613,28 +518,20 @@
             <div class="createFormGrid">
               <div class="halfScreenInput">
                 <p>NIP</p>
-                <input type="text" id="firmaNIP" maxlength="10"/>
+                <input type="text" id="firmaNIP" maxlength="10" />
               </div>
               <div class="halfScreenInput">
                 <p>REGON</p>
-                <input type="text" id="firmaREGON" maxlength="9"/>
+                <input type="text" id="firmaREGON" maxlength="9" />
               </div>
             </div>
             <p>Numer licencji transportowej</p>
-            <input
-              type="text"
-              id="firmaNumerLicencji"
-            />
+            <input type="text" id="firmaNumerLicencji" />
             <div class="createFormButtons">
-              <button
-                class="acceptButton acceptZmianyButton"
-                onclick="acceptZmianyFirmy()"
-              >
+              <button class="acceptButton acceptZmianyButton" onclick="acceptZmianyFirmy()">
                 Zapisz zmiany
               </button>
-              <button class="cancelButton" onclick="cancelZmianyFirmy()">
-                Anuluj
-              </button>
+              <button class="cancelButton" onclick="cancelZmianyFirmy()">Anuluj</button>
             </div>
           </div>
         </div>
@@ -651,7 +548,7 @@
               </div>
               <div class="halfScreenInput">
                 <p>Nazwisko</p>
-                <input type="text" id="userNazwisko"/>
+                <input type="text" id="userNazwisko" />
               </div>
             </div>
             <p>Numer telefonu</p>
@@ -666,42 +563,29 @@
               autocomplete="off"
             />
             <div class="createFormButtons">
-              <button
-                class="acceptButton acceptZmianyButton"
-                onclick="acceptZmianyUser()"
-              >
+              <button class="acceptButton acceptZmianyButton" onclick="acceptZmianyUser()">
                 Zapisz zmiany
               </button>
-              <button class="cancelButton" onclick="cancelZmianyUser()">
-                Anuluj
-              </button>
+              <button class="cancelButton" onclick="cancelZmianyUser()">Anuluj</button>
             </div>
           </div>
           <div class="createPojazdForm createForm">
             <h3>Zmiana hasła</h3>
             <p>Obecne hasło</p>
-            <input
-              type="password"
-              id="userHaslo"
-            />
+            <input type="password" id="userHaslo" />
             <p>Nowe hasło</p>
-            <input type="password" id="userNoweHaslo"/>
+            <input type="password" id="userNoweHaslo" />
             <p>Powtórz nowe hasło</p>
-            <input type="password" id="userNoweHasloPowtorz"/>
+            <input type="password" id="userNoweHasloPowtorz" />
             <div class="createFormButtons">
-              <button
-                class="acceptButton acceptZmianyButton"
-                onclick="acceptZmianyHasla()"
-              >
+              <button class="acceptButton acceptZmianyButton" onclick="acceptZmianyHasla()">
                 Zmień hasło
               </button>
-              <button class="cancelButton" onclick="cancelZmianyUser()">
-                Anuluj
-              </button>
+              <button class="cancelButton" onclick="cancelZmianyUser()">Anuluj</button>
             </div>
+          </div>
         </div>
       </div>
-
     </div>
     <div id="viewMojePojazdy" class="inView">
       <div class="main">
@@ -744,10 +628,10 @@
 
     <div id="detailsModal" class="modal">
       <div class="modal-content">
-          <span class="modal-close">&times;</span>
-      <div id="modalBody"></div>
+        <span class="modal-close">&times;</span>
+        <div id="modalBody"></div>
+      </div>
     </div>
-  </div>
 
     <div id="globalLoader" class="loader hidden">
       <div class="spinner"></div>

@@ -11,11 +11,7 @@ export async function fetchCompanyById(id) {
 }
 
 export async function createCompany(companyData) {
-  const { error } = await client
-    .from("FIRMA")
-    .insert(companyData)
-    .select()
-    .single();
+  const { error } = await client.from("FIRMA").insert(companyData).select().single();
 
   return { error };
 }

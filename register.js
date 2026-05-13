@@ -7,13 +7,7 @@ async function register() {
   const confirmPasswordInput = document.getElementById("confirmed_password");
   const errorBoxElement = document.getElementById("register_error");
 
-  if (
-    !emailInput ||
-    !passwordInput ||
-    !confirmPasswordInput ||
-    !errorBoxElement
-  )
-    return;
+  if (!emailInput || !passwordInput || !confirmPasswordInput || !errorBoxElement) return;
 
   const email = emailInput.value.trim();
   const password = passwordInput.value;
@@ -23,8 +17,7 @@ async function register() {
   errorBoxElement.innerText = "";
 
   if (!validatePassword(password)) {
-    errorBoxElement.innerText =
-      "Hasło musi mieć min. 10 znaków, cyfrę i znak specjalny.";
+    errorBoxElement.innerText = "Hasło musi mieć min. 10 znaków, cyfrę i znak specjalny.";
     return;
   }
 
@@ -60,8 +53,7 @@ async function register() {
   }
 
   if (!user) {
-    errorBoxElement.innerText =
-      "Konto utworzone, ale musisz potwierdzić email i zalogować się.";
+    errorBoxElement.innerText = "Konto utworzone, ale musisz potwierdzić email i zalogować się.";
     return;
   }
 
@@ -74,8 +66,7 @@ async function register() {
     });
 
     errorBoxElement.style.color = "green";
-    errorBoxElement.innerText =
-      "Konto właściciela utworzone. Zaloguj się i utwórz firmę.";
+    errorBoxElement.innerText = "Konto właściciela utworzone. Zaloguj się i utwórz firmę.";
     window.location.href = "index.html";
     return;
   }
@@ -91,8 +82,7 @@ async function register() {
     return;
   }
 
-  errorBoxElement.innerText =
-    "Nie możesz założyć konta. Skontaktuj się z administratorem.";
+  errorBoxElement.innerText = "Nie możesz założyć konta. Skontaktuj się z administratorem.";
 }
 
 document.addEventListener("keydown", function (e) {

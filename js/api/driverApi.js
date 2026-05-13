@@ -11,11 +11,7 @@ export async function fetchDrivers(firmaId) {
 }
 
 export async function fetchDriverById(id) {
-  const { data: driver, error } = await client
-    .from("KIEROWCA")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: driver, error } = await client.from("KIEROWCA").select("*").eq("id", id).single();
 
   return { driver, error };
 }
@@ -36,10 +32,7 @@ export async function createDriver(driverData) {
 }
 
 export async function updateDriver(id, driverData) {
-  const { error } = await client
-    .from("KIEROWCA")
-    .update(driverData)
-    .eq("id", id);
+  const { error } = await client.from("KIEROWCA").update(driverData).eq("id", id);
 
   return { error };
 }

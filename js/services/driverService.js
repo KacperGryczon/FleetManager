@@ -69,8 +69,7 @@ export async function handleAddDriver(driverFormData, firmaId) {
     return false;
   }
 
-  const { driver: existingDriver, error: checkError } =
-    await checkDriverExists(email);
+  const { driver: existingDriver, error: checkError } = await checkDriverExists(email);
 
   if (checkError) {
     showAlert(false, "Błąd podczas sprawdzania kierowcy");

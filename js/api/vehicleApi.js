@@ -4,7 +4,7 @@ export async function fetchVehicles(firmaId) {
   const { data: vehicles, error } = await client
     .from("POJAZD")
     .select(
-      "id, numer_rejestracyjny, typ, marka, model, vin, rok_produkcji, przypisany_kierowca_id, KIEROWCA:przypisany_kierowca_id (imie_nazwisko)",
+      "id, numer_rejestracyjny, typ, marka, model, vin, rok_produkcji, przypisany_kierowca_id, KIEROWCA:przypisany_kierowca_id (imie_nazwisko)"
     )
     .eq("firma_id", firmaId)
     .order("numer_rejestracyjny", { ascending: true });

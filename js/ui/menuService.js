@@ -23,9 +23,15 @@ export async function showView(viewId, title, loadViewDataCallback) {
   const role = await getUserRole();
   const blockedViews = getBlockedViews(role);
 
+  // If view is blocked, redirect to Dashboard without callback to prevent infinite loops
   if (blockedViews.includes(viewId)) {
     hideLoader();
-    return showView("viewDashboard", "Pulpit", loadViewDataCallback);
+    if (viewId !== "viewDashboard") {
+      return showView("viewDashboard", "Pulpit", async () => {
+        await loadDashboardData?.();
+      });
+    }
+    return;
   }
 
   document.querySelectorAll(".inView").forEach((view) => {
@@ -40,9 +46,18 @@ export async function showView(viewId, title, loadViewDataCallback) {
 
   viewElement.classList.add("visible");
 
-  viewElement.querySelectorAll("input").forEach((el) => {
-    el.value = "";
-  });
+  // Only clear inputs for form views, not for data display views
+  const formViews = [
+    "viewDodajPojazd",
+    "viewDodajKierowcę",
+    "viewDodajDokument",
+    "viewDodajUzytkownika",
+  ];
+  if (formViews.includes(viewId)) {
+    viewElement.querySelectorAll("input").forEach((el) => {
+      el.value = "";
+    });
+  }
 
   if (title) {
     const titleElement = document.getElementById("viewTitle");

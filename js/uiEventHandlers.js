@@ -38,8 +38,7 @@ export function setupDocumentTypeChangeHandler() {
         .map((v) => `<option value="${v.id}">${v.numer_rejestracyjny}</option>`)
         .join("");
 
-      document.getElementById("dokumentWlascicielText").innerText =
-        "Wybierz pojazd";
+      document.getElementById("dokumentWlascicielText").innerText = "Wybierz pojazd";
     }
 
     if (typ === "Kierowca") {
@@ -52,47 +51,9 @@ export function setupDocumentTypeChangeHandler() {
         .map((d) => `<option value="${d.id}">${d.imie_nazwisko}</option>`)
         .join("");
 
-      document.getElementById("dokumentWlascicielText").innerText =
-        "Wybierz właściciela";
+      document.getElementById("dokumentWlascicielText").innerText = "Wybierz właściciela";
     }
   });
-}
-
-export function setupUserRoleChangeHandler() {
-  const userRoleSelect = document.getElementById("selectTypUżytkownika");
-
-  if (!userRoleSelect) return;
-
-  const kierowcaSelectWrapper = document.getElementById(
-    "kierowcaSelectWrapper",
-  );
-  const kierowcaDaneWrapper = document.getElementById("kierowcaDane");
-  const emailInput = document.getElementById("użytkownikMail");
-
-  const updateRoleUI = async (rola) => {
-    if (rola === "Kierowca") {
-      if (kierowcaSelectWrapper) kierowcaSelectWrapper.style.display = "block";
-      if (kierowcaDaneWrapper) kierowcaDaneWrapper.style.display = "grid";
-      if (emailInput) emailInput.readOnly = true;
-
-      const firmaId = await getCompanyIdForUser();
-      await loadAvailableDriversForUserForm(firmaId);
-    } else {
-      if (kierowcaSelectWrapper) kierowcaSelectWrapper.style.display = "none";
-      if (kierowcaDaneWrapper) kierowcaDaneWrapper.style.display = "none";
-      if (emailInput) emailInput.readOnly = false;
-
-      document.getElementById("użytkownikMail").value = "";
-      document.getElementById("użytkownikImie").value = "";
-      document.getElementById("użytkownikNazwisko").value = "";
-    }
-  };
-
-  userRoleSelect.addEventListener("change", async () => {
-    await updateRoleUI(userRoleSelect.value);
-  });
-
-  updateRoleUI(userRoleSelect.value);
 }
 
 export function setupDriverSelectForUserHandler() {
@@ -122,29 +83,43 @@ export function setupDriverSelectForUserHandler() {
   });
 }
 
-export function setupRoleSelectionHandler() {
-  const roleSelect = document.getElementById("selectTypUżytkownika");
-
-  if (!roleSelect) return;
-
-  roleSelect.addEventListener("change", function () {
-    const rola = this.value;
-    const daneWrapper = document.getElementById("kierowcaDane");
-
-    if (rola === "Kierowca") {
-      if (daneWrapper) daneWrapper.style.display = "grid";
-    } else {
-      if (daneWrapper) daneWrapper.style.display = "none";
-
-      document.getElementById("użytkownikImie").value = "";
-      document.getElementById("użytkownikNazwisko").value = "";
-    }
-  });
-}
-
 export function setupUIEventHandlers() {
   setupDocumentTypeChangeHandler();
   setupUserRoleChangeHandler();
   setupDriverSelectForUserHandler();
-  setupRoleSelectionHandler();
+}
+
+function setupUserRoleChangeHandler() {
+  const userRoleSelect = document.getElementById("selectTypUżytkownika");
+
+  if (!userRoleSelect) return;
+
+  const kierowcaSelectWrapper = document.getElementById("kierowcaSelectWrapper");
+  const kierowcaDaneWrapper = document.getElementById("kierowcaDane");
+  const emailInput = document.getElementById("użytkownikMail");
+
+  const updateRoleUI = async (rola) => {
+    if (rola === "Kierowca") {
+      if (kierowcaSelectWrapper) kierowcaSelectWrapper.style.display = "block";
+      if (kierowcaDaneWrapper) kierowcaDaneWrapper.style.display = "grid";
+      if (emailInput) emailInput.readOnly = true;
+
+      const firmaId = await getCompanyIdForUser();
+      await loadAvailableDriversForUserForm(firmaId);
+    } else {
+      if (kierowcaSelectWrapper) kierowcaSelectWrapper.style.display = "none";
+      if (kierowcaDaneWrapper) kierowcaDaneWrapper.style.display = "none";
+      if (emailInput) emailInput.readOnly = false;
+
+      document.getElementById("użytkownikMail").value = "";
+      document.getElementById("użytkownikImie").value = "";
+      document.getElementById("użytkownikNazwisko").value = "";
+    }
+  };
+
+  userRoleSelect.addEventListener("change", async () => {
+    await updateRoleUI(userRoleSelect.value);
+  });
+
+  updateRoleUI(userRoleSelect.value);
 }

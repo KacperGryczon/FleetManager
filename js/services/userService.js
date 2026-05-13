@@ -10,11 +10,7 @@ import {
 } from "../api/userApi.js";
 import { updateDriver, checkDriverExists } from "../api/driverApi.js";
 import { showAlert } from "../ui/alertService.js";
-import {
-  validateEmail,
-  validatePassword,
-  validateDriverName,
-} from "../utils/validators.js";
+import { validateEmail, validatePassword, validateDriverName } from "../utils/validators.js";
 import { client } from "../api/supabase.js";
 import { getCurrentUser, getCurrentSession } from "../auth/authService.js";
 import { getCompanyIdForUser } from "../auth/authService.js";
@@ -196,9 +192,7 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
     return false;
   }
 
-  const { user: userRecord, error: userError } = await fetchUserByAuthId(
-    currentUser.id,
-  );
+  const { user: userRecord, error: userError } = await fetchUserByAuthId(currentUser.id);
 
   if (userError) {
     showAlert(false, "Błąd pobierania użytkownika.");
@@ -223,8 +217,9 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
 
   let driverId = userRecord.kierowca_id;
 
-  const { driver: existingDriver, error: driverLookupError } =
-    await checkDriverExists(currentUser.email);
+  const { driver: existingDriver, error: driverLookupError } = await checkDriverExists(
+    currentUser.email
+  );
 
   if (driverLookupError) {
     console.error("Driver lookup error:", driverLookupError);
@@ -238,10 +233,7 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
     });
 
     if (linkError) {
-      console.warn(
-        "Nie udało się zaktualizować powiązania kierowcy:",
-        linkError,
-      );
+      console.warn("Nie udało się zaktualizować powiązania kierowcy:", linkError);
     }
   }
 
@@ -251,17 +243,11 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
       telefon,
     };
 
-    const { error: driverError } = await updateDriver(
-      driverId,
-      driverUpdateData,
-    );
+    const { error: driverError } = await updateDriver(driverId, driverUpdateData);
 
     if (driverError) {
       console.error("Driver update error:", driverError);
-      showAlert(
-        false,
-        "Profil zapisano, ale nie udało się zaktualizować kierowcy.",
-      );
+      showAlert(false, "Profil zapisano, ale nie udało się zaktualizować kierowcy.");
       return false;
     }
   }
@@ -270,12 +256,7 @@ export async function handleUpdateUserProfile(imie, nazwisko, telefon) {
   return true;
 }
 
-export async function handleUpdateUserFromAdmin(
-  userId,
-  imie,
-  nazwisko,
-  telefon,
-) {
+export async function handleUpdateUserFromAdmin(userId, imie, nazwisko, telefon) {
   if (!(await can("canManageUsers"))) {
     showAlert(false, "Nie masz uprawnień do edycji użytkownika");
     return false;
@@ -300,10 +281,7 @@ export async function handleUpdateUserFromAdmin(
 
   if (userLookupError) {
     console.error("Error looking up user:", userLookupError);
-    showAlert(
-      true,
-      "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany",
-    );
+    showAlert(true, "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany");
     return true;
   }
 
@@ -315,10 +293,7 @@ export async function handleUpdateUserFromAdmin(
 
     if (driverError) {
       console.error("Driver update error:", driverError);
-      showAlert(
-        true,
-        "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany",
-      );
+      showAlert(true, "Użytkownik został zaktualizowany, ale kierowca nie mógł być zaktualizowany");
       return true;
     }
   }
@@ -327,21 +302,14 @@ export async function handleUpdateUserFromAdmin(
   return true;
 }
 
-export async function handleChangePassword(
-  currentPassword,
-  newPassword,
-  newPasswordConfirm,
-) {
+export async function handleChangePassword(currentPassword, newPassword, newPasswordConfirm) {
   if (newPassword !== newPasswordConfirm) {
     showAlert(false, "Nowe hasła nie są takie same.");
     return false;
   }
 
   if (!validatePassword(newPassword)) {
-    showAlert(
-      false,
-      "Hasło musi mieć min. 10 znaków, zawierać cyfrę i znak specjalny.",
-    );
+    showAlert(false, "Hasło musi mieć min. 10 znaków, zawierać cyfrę i znak specjalny.");
     return false;
   }
 

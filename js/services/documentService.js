@@ -22,6 +22,7 @@ import { getStatusLabel, getStatusColors } from "../utils/formatters.js";
 import { validateDocumentDate } from "../utils/validators.js";
 import { can } from "../auth/permissionService.js";
 import { client } from "../api/supabase.js";
+import { getCurrentUser, getUserRole, getCompanyIdForUser } from "../auth/authService.js";
 
 let dokumentyCache = [];
 
@@ -45,34 +46,30 @@ export async function loadDocumentsForCompany(firmaId) {
 }
 
 export async function loadDocumentsForDriverDashboard(kierowcaId) {
-  const { documents: driverDocuments, error: driverError } =
-    await fetchDocumentsForDriver(kierowcaId);
+  // Use Promise.all() for parallel queries instead of sequential awaits
+  const [driverDocsResult, vehiclesResult] = await Promise.all([
+    fetchDocumentsForDriver(kierowcaId),
+    fetchVehiclesForDriver(kierowcaId),
+  ]);
 
-  if (driverError) {
+  const { documents: driverDocuments, error: driverError } = driverDocsResult;
+  const { vehicles, error: vehicleError } = vehiclesResult;
+
+  if (driverError || vehicleError) {
     return false;
   }
 
-  const { vehicles, error: vehicleError } =
-    await fetchVehiclesForDriver(kierowcaId);
-
-  if (vehicleError) {
-    return false;
-  }
-
-  const vehicleIds = vehicles.map((v) => v.id);
-
+  const vehicleIds = vehicles?.map((v) => v.id) || [];
   let vehicleDocuments = [];
-  if (vehicleIds.length > 0) {
-    const { documents: vDocs, error: vError } =
-      await fetchDocumentsForVehicles(vehicleIds);
 
+  if (vehicleIds.length > 0) {
+    const { documents: vDocs, error: vError } = await fetchDocumentsForVehicles(vehicleIds);
     if (!vError) {
       vehicleDocuments = vDocs || [];
     }
   }
 
-  const allDocuments = [...driverDocuments, ...vehicleDocuments];
-
+  const allDocuments = [...(driverDocuments || []), ...vehicleDocuments];
   setDocumentsCache(allDocuments);
 
   return true;
@@ -94,20 +91,11 @@ export async function renderDocuments(documentList) {
     return;
   }
 
+  // Optimize: Batch fetch all owner names instead of sequential queries
+  const ownerNamesMap = await buildOwnerNamesMap(documentList);
+
   for (const doc of documentList) {
-    let ownerName = "";
-
-    if (doc.typ_wlasciciela === "Pojazd") {
-      const { name } = await fetchVehicleNameForDocument(doc.wlasciciel_id);
-      ownerName = name;
-    } else if (doc.typ_wlasciciela === "Kierowca") {
-      const { name } = await fetchDriverNameForDocument(doc.wlasciciel_id);
-      ownerName = name;
-    } else if (doc.typ_wlasciciela === "Firma") {
-      const { name } = await fetchCompanyNameForDocument(doc.wlasciciel_id);
-      ownerName = name;
-    }
-
+    const ownerName = ownerNamesMap[`${doc.typ_wlasciciela}_${doc.wlasciciel_id}`] || "Brak";
     const { background, border } = getStatusColors(doc.status);
 
     const row = document.createElement("div");
@@ -132,14 +120,70 @@ export async function renderDocuments(documentList) {
   }
 }
 
+// Helper function to batch fetch all owner names
+async function buildOwnerNamesMap(documentList) {
+  const ownerNamesMap = {};
+
+  // Separate by type for batch queries
+  const vehicleIds = new Set();
+  const driverIds = new Set();
+  const companyIds = new Set();
+
+  for (const doc of documentList) {
+    if (doc.typ_wlasciciela === "Pojazd") vehicleIds.add(doc.wlasciciel_id);
+    else if (doc.typ_wlasciciela === "Kierowca") driverIds.add(doc.wlasciciel_id);
+    else if (doc.typ_wlasciciela === "Firma") companyIds.add(doc.wlasciciel_id);
+  }
+
+  // Batch query all vehicles
+  if (vehicleIds.size > 0) {
+    const { data: vehicles } = await client
+      .from("POJAZD")
+      .select("id, numer_rejestracyjny")
+      .in("id", Array.from(vehicleIds));
+
+    if (vehicles) {
+      for (const vehicle of vehicles) {
+        ownerNamesMap[`Pojazd_${vehicle.id}`] = vehicle.numer_rejestracyjny;
+      }
+    }
+  }
+
+  // Batch query all drivers
+  if (driverIds.size > 0) {
+    const { data: drivers } = await client
+      .from("KIEROWCA")
+      .select("id, imie_nazwisko")
+      .in("id", Array.from(driverIds));
+
+    if (drivers) {
+      for (const driver of drivers) {
+        ownerNamesMap[`Kierowca_${driver.id}`] = driver.imie_nazwisko;
+      }
+    }
+  }
+
+  // Batch query all companies
+  if (companyIds.size > 0) {
+    const { data: companies } = await client
+      .from("FIRMA")
+      .select("id, nazwa")
+      .in("id", Array.from(companyIds));
+
+    if (companies) {
+      for (const company of companies) {
+        ownerNamesMap[`Firma_${company.id}`] = company.nazwa;
+      }
+    }
+  }
+
+  return ownerNamesMap;
+}
+
 export function updateDocumentDashboardTiles() {
   const validCount = dokumentyCache.filter((d) => d.status === "ok").length;
-  const expiringCount = dokumentyCache.filter(
-    (d) => d.status === "wygasa",
-  ).length;
-  const expiredCount = dokumentyCache.filter(
-    (d) => d.status === "niewazny",
-  ).length;
+  const expiringCount = dokumentyCache.filter((d) => d.status === "wygasa").length;
+  const expiredCount = dokumentyCache.filter((d) => d.status === "niewazny").length;
 
   const validElement = document.getElementById("wazneNumber");
   const expiringElement = document.getElementById("wygasajaNumber");
@@ -170,29 +214,19 @@ export function applyDocumentFilters() {
     if (filters.status === "Ważne") {
       filteredDocuments = filteredDocuments.filter((d) => d.status === "ok");
     } else if (filters.status === "Wygasające") {
-      filteredDocuments = filteredDocuments.filter(
-        (d) => d.status === "wygasa",
-      );
+      filteredDocuments = filteredDocuments.filter((d) => d.status === "wygasa");
     } else if (filters.status === "Nieważne") {
-      filteredDocuments = filteredDocuments.filter(
-        (d) => d.status === "niewazny",
-      );
+      filteredDocuments = filteredDocuments.filter((d) => d.status === "niewazny");
     }
   }
 
   if (filters.type !== "Wszystkie") {
     if (filters.type === "Pojazdy") {
-      filteredDocuments = filteredDocuments.filter(
-        (d) => d.typ_wlasciciela === "Pojazd",
-      );
+      filteredDocuments = filteredDocuments.filter((d) => d.typ_wlasciciela === "Pojazd");
     } else if (filters.type === "Kierowcy") {
-      filteredDocuments = filteredDocuments.filter(
-        (d) => d.typ_wlasciciela === "Kierowca",
-      );
+      filteredDocuments = filteredDocuments.filter((d) => d.typ_wlasciciela === "Kierowca");
     } else if (filters.type === "Firma") {
-      filteredDocuments = filteredDocuments.filter(
-        (d) => d.typ_wlasciciela === "Firma",
-      );
+      filteredDocuments = filteredDocuments.filter((d) => d.typ_wlasciciela === "Firma");
     }
   }
 
@@ -200,8 +234,7 @@ export function applyDocumentFilters() {
 }
 
 export async function handleAddDocument(documentFormData, firmaId) {
-  const { nazwa, dataWaznosci, typPrzypisania, file, wlascicielId } =
-    documentFormData;
+  const { nazwa, dataWaznosci, typPrzypisania, file, wlascicielId } = documentFormData;
 
   if (!(await can("canManageDocuments"))) {
     showAlert(false, "Nie masz uprawnień do dodawania dokumentów");
@@ -359,10 +392,8 @@ export async function handleUpdateDocument(documentId, updateData) {
     return false;
   }
 
-  const userRole = await (await import("../auth/authService.js")).getUserRole();
-  const currentUser = await (
-    await import("../auth/authService.js")
-  ).getCurrentUser();
+  const userRole = await getUserRole();
+  const currentUser = await getCurrentUser();
   const doc = await getDocumentDetails(documentId);
 
   if (!doc) {
@@ -379,10 +410,7 @@ export async function handleUpdateDocument(documentId, updateData) {
 
     let driverCanEdit = false;
 
-    if (
-      doc.typ_wlasciciela === "Kierowca" &&
-      userRecord?.kierowca_id === doc.wlasciciel_id
-    ) {
+    if (doc.typ_wlasciciela === "Kierowca" && userRecord?.kierowca_id === doc.wlasciciel_id) {
       driverCanEdit = true;
     } else if (doc.typ_wlasciciela === "Pojazd" && userRecord?.kierowca_id) {
       const { data: vehicles } = await client
@@ -419,9 +447,20 @@ export async function handleUpdateDocument(documentId, updateData) {
     return false;
   }
 
-  const { getCompanyIdForUser } = await import("../auth/authService.js");
-  const firmaId = await getCompanyIdForUser();
-  await loadDocumentsForCompany(firmaId);
+  // Optimize: Update cache instead of reloading everything
+  const updatedDoc = {
+    ...doc,
+    typ_dokumentu: typ_dokumentu.trim(),
+    data_waznosci,
+    status: newStatus,
+  };
+
+  const cache = getDocumentsCache();
+  const index = cache.findIndex((d) => d.id === documentId);
+  if (index !== -1) {
+    cache[index] = updatedDoc;
+  }
+
   showAlert(true, "Dokument został zaktualizowany");
   return true;
 }

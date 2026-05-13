@@ -1,7 +1,4 @@
-import {
-  getDocumentsCache,
-  fetchDocumentOwnerName,
-} from "./documentService.js";
+import { getDocumentsCache, fetchDocumentOwnerName } from "./documentService.js";
 import { calculateDocumentStatus } from "../utils/documentStatusCalculator.js";
 import { getStatusLabel } from "../utils/formatters.js";
 import { getUserRole } from "../auth/authService.js";
@@ -27,16 +24,10 @@ export async function renderUpcomingDocuments(kierowcaId = null) {
     const vehicleIds = !error && vehicles ? vehicles.map((v) => v.id) : [];
 
     filteredDocs = documents.filter((doc) => {
-      if (
-        doc.typ_wlasciciela === "Kierowca" &&
-        doc.wlasciciel_id === kierowcaId
-      ) {
+      if (doc.typ_wlasciciela === "Kierowca" && doc.wlasciciel_id === kierowcaId) {
         return true;
       }
-      if (
-        doc.typ_wlasciciela === "Pojazd" &&
-        vehicleIds.includes(doc.wlasciciel_id)
-      ) {
+      if (doc.typ_wlasciciela === "Pojazd" && vehicleIds.includes(doc.wlasciciel_id)) {
         return true;
       }
       return false;

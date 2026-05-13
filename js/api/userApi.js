@@ -46,10 +46,7 @@ export async function createUser(userData) {
 }
 
 export async function updateUser(id, userData) {
-  const { error } = await client
-    .from("UZYTKOWNIK")
-    .update(userData)
-    .eq("id", id);
+  const { error } = await client.from("UZYTKOWNIK").update(userData).eq("id", id);
 
   return { error };
 }

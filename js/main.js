@@ -14,12 +14,7 @@ import {
   showAddButtons,
 } from "./ui/menuService.js";
 import { showLoader, hideLoader } from "./ui/loaderService.js";
-import {
-  initModalHandlers,
-  hideDeleteButtons,
-  closeModal,
-  openModal,
-} from "./ui/modalService.js";
+import { initModalHandlers, hideDeleteButtons, closeModal, openModal } from "./ui/modalService.js";
 import { showAlert } from "./ui/alertService.js";
 import { initPhoneMask } from "./utils/phoneMask.js";
 
@@ -75,6 +70,7 @@ import { calculateDocumentStatus } from "./utils/documentStatusCalculator.js";
 import { fetchDocumentsForPublicView } from "./api/documentApi.js";
 import { fetchAvailableDrivers } from "./api/vehicleApi.js";
 import { setupUIEventHandlers } from "./uiEventHandlers.js";
+import { debounce } from "./utils/performanceUtils.js";
 import "./globals.js";
 
 let currentUserRole = null;
@@ -332,8 +328,7 @@ document.addEventListener("click", async (e) => {
         const wlasciciel =
           doc.typ_wlasciciela === "Kierowca"
             ? "Ty"
-            : vehicles.find((v) => v.id === doc.wlasciciel_id)
-                ?.numer_rejestracyjny || "Pojazd";
+            : vehicles.find((v) => v.id === doc.wlasciciel_id)?.numer_rejestracyjny || "Pojazd";
 
         const wygasa = doc.data_waznosci || "-";
 
@@ -392,11 +387,7 @@ document.addEventListener("click", async (e) => {
       }
 
       let assignButton = "";
-      if (
-        !hasDriver &&
-        (currentUserRole === "Właściciel" ||
-          currentUserRole === "Administrator")
-      ) {
+      if (!hasDriver && (currentUserRole === "Właściciel" || currentUserRole === "Administrator")) {
         assignButton = `<button class="edytujBtn" onclick="window.assignVehicleHandler()">
           <i class="fa-solid fa-link"></i>Przypisz kierowcę
         </button>`;
@@ -508,7 +499,7 @@ document.addEventListener("click", async (e) => {
             return plikUrl.path;
           }
           const firstUrl = Object.values(plikUrl).find(
-            (value) => typeof value === "string" && value.startsWith("http"),
+            (value) => typeof value === "string" && value.startsWith("http")
           );
           return firstUrl || null;
         }
@@ -601,8 +592,7 @@ document.addEventListener("click", async (e) => {
   } else if (type === "uzytkownik") {
     const user = await getUserDetails(id);
     if (user) {
-      const disableDelete =
-        currentUserRole === "Przeglądający" || user.rola === "Właściciel";
+      const disableDelete = currentUserRole === "Przeglądający" || user.rola === "Właściciel";
       const deleteBtn = disableDelete
         ? ""
         : `<button class="usunPojazdBtn" onclick="window.deleteUserHandler()"><i class="fa-solid fa-trash"></i>Usuń użytkownika</button>`;
@@ -639,9 +629,7 @@ document.addEventListener("click", async (e) => {
         <p class="przypisanyKierowcaP">Firma</p>
         <div class="przypisanyKierowca">
           <h3>${
-            Array.isArray(user.FIRMA)
-              ? user.FIRMA[0]?.nazwa || "Brak"
-              : user.FIRMA?.nazwa || "Brak"
+            Array.isArray(user.FIRMA) ? user.FIRMA[0]?.nazwa || "Brak" : user.FIRMA?.nazwa || "Brak"
           }</h3>
 
         </div>
@@ -779,8 +767,7 @@ window.saveEditedUser = async () => {
     return;
   }
 
-  const { handleUpdateUserFromAdmin } =
-    await import("./services/userService.js");
+  const { handleUpdateUserFromAdmin } = await import("./services/userService.js");
   if (await handleUpdateUserFromAdmin(userId, imie, nazwisko, telefon)) {
     closeModal();
     const firmaId = await getCompanyIdForUser();
@@ -841,8 +828,7 @@ window.saveEditedDocument = async () => {
     closeModal();
     const firmaId = await getCompanyIdForUser();
     const role = await getUserRole();
-    const { renderUpcomingDocuments } =
-      await import("./services/dashboardService.js");
+    const { renderUpcomingDocuments } = await import("./services/dashboardService.js");
 
     if (role === "Kierowca") {
       const { data: userRecord } = await client
@@ -938,10 +924,7 @@ document.addEventListener("click", async (e) => {
   if (role === "Przeglądający") {
     if (e.target.closest(".addButton")) {
       e.preventDefault();
-      showAlert(
-        false,
-        "Nie masz uprawnień do dodawania ani modyfikowania danych.",
-      );
+      showAlert(false, "Nie masz uprawnień do dodawania ani modyfikowania danych.");
       return;
     }
   }
@@ -957,15 +940,16 @@ window.addEventListener("load", async () => {
 
   setupUIEventHandlers();
 
+  // Add debounced filter handler to prevent excessive rendering
+  const debouncedApplyFilters = debounce(applyDocumentFilters, 150);
+
   const filterButtons = document.querySelectorAll(".filtry .buttons button");
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const group = btn.parentElement;
-      group
-        .querySelectorAll("button")
-        .forEach((b) => b.classList.remove("active"));
+      group.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      applyDocumentFilters();
+      debouncedApplyFilters();
     });
   });
 

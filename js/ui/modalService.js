@@ -34,10 +34,8 @@ export function initModalHandlers() {
 
 export function hideDeleteButtons(userRole) {
   if (userRole === "Kierowca" || userRole === "Przeglądający") {
-    document
-      .querySelectorAll(".usunPojazdBtn, .usunDokumentBtn")
-      .forEach((el) => {
-        el.style.display = "none";
-      });
+    document.querySelectorAll(".usunPojazdBtn, .usunDokumentBtn").forEach((el) => {
+      el.style.display = "none";
+    });
   }
 }

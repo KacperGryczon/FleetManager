@@ -7,10 +7,7 @@ import {
   updateVehicle,
 } from "../api/vehicleApi.js";
 import { showAlert } from "../ui/alertService.js";
-import {
-  validateVehicleRegistration,
-  validateProductionYear,
-} from "../utils/validators.js";
+import { validateVehicleRegistration, validateProductionYear } from "../utils/validators.js";
 import { can } from "../auth/permissionService.js";
 
 export async function loadAndRenderVehicles(firmaId) {

@@ -9,9 +9,7 @@ export function calculateDocumentStatus(expiryDate) {
     return "niewazny";
   }
 
-  const daysDifference = Math.floor(
-    (expiryDateTime - today) / (1000 * 60 * 60 * 24),
-  );
+  const daysDifference = Math.floor((expiryDateTime - today) / (1000 * 60 * 60 * 24));
 
   if (daysDifference <= 30) {
     return "wygasa";

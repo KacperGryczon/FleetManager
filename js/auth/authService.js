@@ -1,5 +1,11 @@
 import { client } from "../api/supabase.js";
 
+let cachedUserRole = null;
+let cachedCompanyId = null;
+let roleExpiresAt = 0;
+let companyIdExpiresAt = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export async function getCurrentUser() {
   const { data } = await client.auth.getUser();
   return data.user || null;
@@ -10,7 +16,24 @@ export async function getCurrentSession() {
   return data.session || null;
 }
 
+export function invalidateRoleCache() {
+  cachedUserRole = null;
+  roleExpiresAt = 0;
+}
+
+export function invalidateCompanyCache() {
+  cachedCompanyId = null;
+  companyIdExpiresAt = 0;
+}
+
 export async function getUserRole() {
+  const now = Date.now();
+
+  // Return cached role if still valid
+  if (cachedUserRole !== null && now < roleExpiresAt) {
+    return cachedUserRole;
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) return null;
 
@@ -26,7 +49,11 @@ export async function getUserRole() {
       return null;
     }
 
-    return userRecord?.rola || null;
+    const role = userRecord?.rola || null;
+    cachedUserRole = role;
+    roleExpiresAt = now + CACHE_DURATION;
+
+    return role;
   } catch (err) {
     console.error("Wyjątek przy pobieraniu roli:", err);
     return null;
@@ -34,6 +61,13 @@ export async function getUserRole() {
 }
 
 export async function getCompanyIdForUser() {
+  const now = Date.now();
+
+  // Return cached company ID if still valid
+  if (cachedCompanyId !== null && now < companyIdExpiresAt) {
+    return cachedCompanyId;
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     console.error("getCompanyIdForUser: Brak zalogowanego użytkownika");
@@ -52,10 +86,9 @@ export async function getCompanyIdForUser() {
   }
 
   if (companyFromUser?.id) {
-    console.log(
-      "getCompanyIdForUser: Znaleziono firmę po user_id:",
-      companyFromUser.id,
-    );
+    console.log("getCompanyIdForUser: Znaleziono firmę po user_id:", companyFromUser.id);
+    cachedCompanyId = companyFromUser.id;
+    companyIdExpiresAt = now + CACHE_DURATION;
     return companyFromUser.id;
   }
 
@@ -71,21 +104,19 @@ export async function getCompanyIdForUser() {
   }
 
   if (!userRecord) {
-    console.error(
-      "getCompanyIdForUser: Nie znaleziono wpisu użytkownika w UZYTKOWNIK",
-    );
+    console.error("getCompanyIdForUser: Nie znaleziono wpisu użytkownika w UZYTKOWNIK");
     return null;
   }
 
   const firmaId = userRecord?.firma_id;
   if (!firmaId) {
-    console.error(
-      "getCompanyIdForUser: Użytkownik nie ma przypisanej firmy (firma_id jest null)",
-    );
+    console.error("getCompanyIdForUser: Użytkownik nie ma przypisanej firmy (firma_id jest null)");
     return null;
   }
 
   console.log("getCompanyIdForUser: Znaleziono firmę z UZYTKOWNIK:", firmaId);
+  cachedCompanyId = firmaId;
+  companyIdExpiresAt = now + CACHE_DURATION;
   return firmaId;
 }
 

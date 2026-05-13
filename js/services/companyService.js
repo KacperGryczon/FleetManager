@@ -1,8 +1,4 @@
-import {
-  fetchCompanyById,
-  createCompany,
-  updateCompany,
-} from "../api/companyApi.js";
+import { fetchCompanyById, createCompany, updateCompany } from "../api/companyApi.js";
 import { showAlert } from "../ui/alertService.js";
 import { validateEmail } from "../utils/validators.js";
 import { client } from "../api/supabase.js";
@@ -119,8 +115,7 @@ export async function renderCompanySettings() {
   document.getElementById("firmaDaneAdres").value = company.adres || "";
   document.getElementById("firmaNIP").value = company.nip || "";
   document.getElementById("firmaREGON").value = company.regon || "";
-  document.getElementById("firmaNumerLicencji").value =
-    company.numer_licencji || "";
+  document.getElementById("firmaNumerLicencji").value = company.numer_licencji || "";
 }
 
 export async function handleUpdateCompanySettings(companyData) {
