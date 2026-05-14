@@ -3,7 +3,6 @@ const { createClient } = supabase;
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate that environment variables are loaded
 if (!supabaseUrl || !supabaseKey) {
   console.error("❌ Environment variables not loaded!");
   console.error("Make sure:");

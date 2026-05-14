@@ -1,4 +1,3 @@
-// Debounce utility for performance optimization
 export function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -11,7 +10,6 @@ export function debounce(func, wait) {
   };
 }
 
-// Throttle utility for high-frequency events
 export function throttle(func, limit) {
   let inThrottle;
   return function (...args) {

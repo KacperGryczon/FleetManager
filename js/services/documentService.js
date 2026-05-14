@@ -46,7 +46,6 @@ export async function loadDocumentsForCompany(firmaId) {
 }
 
 export async function loadDocumentsForDriverDashboard(kierowcaId) {
-  // Use Promise.all() for parallel queries instead of sequential awaits
   const [driverDocsResult, vehiclesResult] = await Promise.all([
     fetchDocumentsForDriver(kierowcaId),
     fetchVehiclesForDriver(kierowcaId),
@@ -91,7 +90,6 @@ export async function renderDocuments(documentList) {
     return;
   }
 
-  // Optimize: Batch fetch all owner names instead of sequential queries
   const ownerNamesMap = await buildOwnerNamesMap(documentList);
 
   for (const doc of documentList) {
@@ -120,11 +118,9 @@ export async function renderDocuments(documentList) {
   }
 }
 
-// Helper function to batch fetch all owner names
 async function buildOwnerNamesMap(documentList) {
   const ownerNamesMap = {};
 
-  // Separate by type for batch queries
   const vehicleIds = new Set();
   const driverIds = new Set();
   const companyIds = new Set();
@@ -135,7 +131,6 @@ async function buildOwnerNamesMap(documentList) {
     else if (doc.typ_wlasciciela === "Firma") companyIds.add(doc.wlasciciel_id);
   }
 
-  // Batch query all vehicles
   if (vehicleIds.size > 0) {
     const { data: vehicles } = await client
       .from("POJAZD")
@@ -149,7 +144,6 @@ async function buildOwnerNamesMap(documentList) {
     }
   }
 
-  // Batch query all drivers
   if (driverIds.size > 0) {
     const { data: drivers } = await client
       .from("KIEROWCA")
@@ -163,7 +157,6 @@ async function buildOwnerNamesMap(documentList) {
     }
   }
 
-  // Batch query all companies
   if (companyIds.size > 0) {
     const { data: companies } = await client
       .from("FIRMA")
@@ -447,7 +440,6 @@ export async function handleUpdateDocument(documentId, updateData) {
     return false;
   }
 
-  // Optimize: Update cache instead of reloading everything
   const updatedDoc = {
     ...doc,
     typ_dokumentu: typ_dokumentu.trim(),

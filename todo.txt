@@ -108,3 +108,9 @@ managing company settings.
 
 
 Downloading URL files works, kierowca name on documents works, "przeglądający" user can't delete users. But there is also one bug in "przeglądający" user profile. The company data doesn't display properly in users modal "szczegóły". what also doesn't work is: driver still can't change the data of the documents, well he can but the data isn't updated in the database, and the "administrator" user still can't do anything other than magnaging users there are some errors in the console on the screen. Deeply analyze whole code, and check for bugs, and i will correct you before u do anything, thing that u change in #file:permissionService.js in "administrator" doesn't help
+
+nie działa wyświetlanie menu hamburger 
+jak się dodaje plik do dokumentu to trzeba go dwa razy wybrać
+jak się dodaje samochód, albo kierowcę, albo dokument i potem się przechodzi do innego widoku to generują się one podwójnie
+jak kierowca zmienia dane dokumentu to lista dokumentów nie restartuje się automatycznie tylko trzeba wyjść z widoku i spowrotem do niego wejść
+coś RLS nie działa na to że admin może usunąć kierowcę, ale może usunąć tego kierowcę którego dodał

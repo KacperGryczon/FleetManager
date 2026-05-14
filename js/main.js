@@ -70,7 +70,6 @@ import { calculateDocumentStatus } from "./utils/documentStatusCalculator.js";
 import { fetchDocumentsForPublicView } from "./api/documentApi.js";
 import { fetchAvailableDrivers } from "./api/vehicleApi.js";
 import { setupUIEventHandlers } from "./uiEventHandlers.js";
-import { debounce } from "./utils/performanceUtils.js";
 import "./globals.js";
 
 let currentUserRole = null;
@@ -633,7 +632,6 @@ document.addEventListener("click", async (e) => {
           }</h3>
 
         </div>
-        ${editButton}
         ${deleteBtn}
       `);
 
@@ -826,6 +824,7 @@ window.saveEditedDocument = async () => {
     })
   ) {
     closeModal();
+
     const firmaId = await getCompanyIdForUser();
     const role = await getUserRole();
     const { renderUpcomingDocuments } = await import("./services/dashboardService.js");
@@ -836,9 +835,10 @@ window.saveEditedDocument = async () => {
         .select("kierowca_id")
         .eq("email", (await getCurrentUser()).email)
         .single();
+
       if (userRecord?.kierowca_id) {
         await loadDocumentsForDriverDashboard(userRecord.kierowca_id);
-        renderUpcomingDocuments(userRecord.kierowca_id);
+        await renderUpcomingDocuments(userRecord.kierowca_id);
       }
     } else {
       await loadDocumentsForCompany(firmaId);
@@ -940,16 +940,13 @@ window.addEventListener("load", async () => {
 
   setupUIEventHandlers();
 
-  // Add debounced filter handler to prevent excessive rendering
-  const debouncedApplyFilters = debounce(applyDocumentFilters, 150);
-
   const filterButtons = document.querySelectorAll(".filtry .buttons button");
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const group = btn.parentElement;
       group.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      debouncedApplyFilters();
+      applyDocumentFilters();
     });
   });
 

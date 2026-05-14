@@ -4,7 +4,7 @@ let cachedUserRole = null;
 let cachedCompanyId = null;
 let roleExpiresAt = 0;
 let companyIdExpiresAt = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export async function getCurrentUser() {
   const { data } = await client.auth.getUser();
@@ -29,7 +29,6 @@ export function invalidateCompanyCache() {
 export async function getUserRole() {
   const now = Date.now();
 
-  // Return cached role if still valid
   if (cachedUserRole !== null && now < roleExpiresAt) {
     return cachedUserRole;
   }
@@ -63,7 +62,6 @@ export async function getUserRole() {
 export async function getCompanyIdForUser() {
   const now = Date.now();
 
-  // Return cached company ID if still valid
   if (cachedCompanyId !== null && now < companyIdExpiresAt) {
     return cachedCompanyId;
   }
@@ -74,7 +72,6 @@ export async function getCompanyIdForUser() {
     return null;
   }
 
-  // Szukamy firmy po user_id (dla właściciela)
   const { data: companyFromUser, error: companyError } = await client
     .from("FIRMA")
     .select("id")
@@ -92,7 +89,6 @@ export async function getCompanyIdForUser() {
     return companyFromUser.id;
   }
 
-  // Fallback: szukamy firma_id w tabeli UZYTKOWNIK (dla administratora i innych użytkowników)
   const { data: userRecord, error: userError } = await client
     .from("UZYTKOWNIK")
     .select("firma_id")

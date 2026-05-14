@@ -1,4 +1,3 @@
-// Error handling utility
 export async function tryCatch(asyncFn, errorMessage = "An error occurred") {
   try {
     return await asyncFn();
@@ -8,7 +7,6 @@ export async function tryCatch(asyncFn, errorMessage = "An error occurred") {
   }
 }
 
-// Async wrapper for event handlers
 export function asyncHandler(fn) {
   return function (...args) {
     Promise.resolve(fn.apply(this, args)).catch((error) => {

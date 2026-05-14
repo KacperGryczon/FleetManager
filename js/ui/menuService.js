@@ -23,7 +23,6 @@ export async function showView(viewId, title, loadViewDataCallback) {
   const role = await getUserRole();
   const blockedViews = getBlockedViews(role);
 
-  // If view is blocked, redirect to Dashboard without callback to prevent infinite loops
   if (blockedViews.includes(viewId)) {
     hideLoader();
     if (viewId !== "viewDashboard") {
@@ -46,7 +45,6 @@ export async function showView(viewId, title, loadViewDataCallback) {
 
   viewElement.classList.add("visible");
 
-  // Only clear inputs for form views, not for data display views
   const formViews = [
     "viewDodajPojazd",
     "viewDodajKierowcę",
@@ -120,6 +118,7 @@ export function initMenuToggle() {
     menuButton.addEventListener("click", () => {
       menuBar.classList.toggle("open");
       menuOverlay.classList.toggle("active");
+      console.log("siema");
     });
   }
 
